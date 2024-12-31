@@ -63,8 +63,16 @@ async def analyze_repo_content(content: str):
                 4. **Documentation and Comments**: Sometimes, documentation files like `README.md` or inline comments in the code indicate the frameworks and languages used. Look for any mention of the tech stack in these files.
 
                 Your task is to identify the **programming languages** (such as Python, JavaScript, Ruby, etc.) and **frameworks** (such as Django, React, Angular, Rails, etc.) used in the project. Provide a list of the major languages and frameworks found in the repository.
-
                 Be sure to mention the specific language and framework for each section based on the observations from the code and configuration files.
+                Do not consider any irrelevant files or directories that do not contribute to the tech stack.
+                DO not add MIT License, README.md, or any other irrelevant files in the analysis.
+                Make sure to not add any explaination or comments only the list of languages and frameworks.
+               5. Return the result as a single dictionary with the following format:
+                                {{
+                                    "languages": ["language_name", ...],
+                                    "frameworks": ["framework_name", ...]
+                                }}
+                                Ensure no duplicates in the lists and avoid any explanations or comments.
                 """
                 message = HumanMessage(content=prompt_template)
                 

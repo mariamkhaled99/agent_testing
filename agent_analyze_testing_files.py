@@ -37,8 +37,26 @@ async def analyze_repo_content_need_testing(content: str):
             if sub_chunk.strip():  # Skip empty chunks
                 prompt_template = f"""
                 Given this content of code: {sub_chunk.strip()} of this project, analyze the code to identify functions, classes, and modules that require testing.
-                Make sure to list them.
+
+                Requirements:
+                - List the names and types of functions, classes, and modules that require testing.
+                - Return the **full code snippet** for each identified item.
+                - Do not include any explanation or comments.
+                - Do not include code that does not require testing.
+                - Ensure the code for each function, class, or module is complete.
+
+                Return the result in the following format:
+                [
+                    {{
+                        "name": "function_or_class_or_module_name",
+                        "type": "type_code",
+                        "code": "full_code_snippet"
+                    }},
+                    ...
+                ]
                 """
+
+
                 message = HumanMessage(content=prompt_template)
                 
                 try:
