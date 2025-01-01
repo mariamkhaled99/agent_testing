@@ -1,3 +1,5 @@
+import json
+import uuid
 import streamlit as st
 import asyncio
 from langchain.prompts import PromptTemplate
@@ -36,19 +38,25 @@ async def analyze_repo_content_need_testing(content: str):
         for sub_chunk in smaller_chunks:
             if sub_chunk.strip():  # Skip empty chunks
                 prompt_template = f"""
-                Given this content of code: {sub_chunk.strip()} of this project, analyze the code to identify functions, classes, and modules that require testing.
+                Given this content of code: {sub_chunk.strip()} of this project, analyze the code to identify functions or classes that require testing.
 
                 Requirements:
-                - List the names and types of functions, classes, and modules that require testing.
-                - Return the **full code snippet** for each identified item.
-                - Do not include any explanation or comments.
-                - Do not include code that does not require testing.
-                - Ensure the code for each function, class, or module is complete.
+                - Identify only user-defined functions or classes explicitly defined in the provided code.
+                - Exclude any built-in functions, classes, or methods specific to the python , as well as any standard library elements or framework-provided constructs.
+                - List the identified functions or classes in a structured format.
+                - For each identified function or class:
+                - Provide a unique ID in the format "id": "<UUID>".
+                - Include the full path of the function or class in the code.
+                - Provide the name and type (e.g., "function" or "class").
+                - Include the complete code snippet defining the function or class.
+
+
 
                 Return the result in the following format:
                 [
-                    {{
-                        "name": "function_or_class_or_module_name",
+                    {{  "id": "<UUID>",
+                        "path": "path for function_or_class",
+                        "name": "function_or_class",
                         "type": "type_code",
                         "code": "full_code_snippet"
                     }},
@@ -56,18 +64,32 @@ async def analyze_repo_content_need_testing(content: str):
                 ]
                 """
 
-
                 message = HumanMessage(content=prompt_template)
                 
                 try:
                     # Initialize OpenAI API client with error handling
                     ai = ChatOpenAI(model="gpt-3.5-turbo", api_key=OPENAI_API_KEY, temperature=0)
                     ai_response = await ai.ainvoke([message])
-                    results.append(ai_response.content.strip())
-                
+
+                    # Parse the response, and if possible, append unique UUIDs for entries
+                    response_content = ai_response.content.strip()
+                    print(f"response_content: {response_content}")
+                    safe_response_content = json.dumps(json.loads(response_content))
+                    parsed_results = json.loads(safe_response_content)
+                   
+                    print("==============================================================================================")
+                    print(f"parsed_results: {parsed_results}")
+                    
+                    # Add unique UUID to each entry
+                    for item in parsed_results:
+                        item["id"] = str(uuid.uuid4())
+
+                    results.append(parsed_results)
+
                 except Exception as e:
-                    print(f"Error during OpenAI API call: {str(e)}")
+                    print(f"Error during OpenAI API call returning needed fuction to test: {str(e)}")
                     results.append(f"Error processing this sub-chunk: {str(e)}")
     
-    return "\n".join(results)
-
+    # Combine all results into a single list of JSON entries
+    flat_results = [item for sublist in results for item in sublist if isinstance(sublist, list)]
+    return flat_results

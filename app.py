@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 import os
 from agent_analyze_langs import analyze_repo_content
 from agent_analyze_testing_files import analyze_repo_content_need_testing
+from agent_generate_test_suite import generate_unit_testing
+
 
 load_dotenv()
 
@@ -56,18 +58,32 @@ if st.button("Analyze Repository"):
             # Perform analysis on the content
             analysis_result_langs = asyncio.run(analyze_repo_content(content))
             analysis_result_testing = asyncio.run(analyze_repo_content_need_testing(content))
-
+            print('==============================================================================================')
+            print(f"analysis_result_langs before json: {analysis_result_langs}")
+            print('==============================================================================================')
+            print('==============================================================================================')
+            
+            modules_need_testing_json=json.dumps(analysis_result_testing, indent=4)
+            print('==============================================================================================')
+            print(f"modules_need_testing: {modules_need_testing_json}")
+            print('==============================================================================================')
+            analysis_result_langs_json=json.dumps(analysis_result_langs, indent=4)
+            print(f"analysis_result_langs: {analysis_result_langs_json}")
+            print('==============================================================================================')
+            
+            unit_test_result= asyncio.run(generate_unit_testing(modules_need_testing_json,analysis_result_langs_json))
             # Create a dictionary with the results
             result_data = {
                 "repo_url": repo_url,
                 "summary": summary,
-                "frameworks_and_languages": analysis_result_langs,
-                "modules_need_testing": analysis_result_testing
+                "frameworks_and_languages":analysis_result_langs,
+                "modules_need_testing": analysis_result_testing,
+                "unit_test_result": unit_test_result
             }
 
             # Convert dictionary to JSON string
             result_json = json.dumps(result_data, indent=4)
-
+            
             # Display the JSON data
             st.subheader("Analysis Results in JSON Format")
             st.json(result_data)  # Display the JSON in a formatted way

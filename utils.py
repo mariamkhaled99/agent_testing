@@ -40,3 +40,6 @@ def split_into_chunks(text, max_size):
             chunks.append("".join(current_chunk))
 
         return chunks
+    
+    
+   

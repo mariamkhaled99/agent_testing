@@ -16,13 +16,17 @@ MAX_TOKENS = 16000  # Safe limit for gpt-3.5-turbo
 RESERVED_PROMPT_TOKENS = 1000  # Reserve tokens for the prompt
 
 
+import json
+
 async def analyze_repo_content(content: str):
     # Split content based on the "File: /path/to/file" pattern to avoid token overflow
-    
-    
     safe_token_limit = MAX_TOKENS - RESERVED_PROMPT_TOKENS
     chunks = split_into_chunks(content, safe_token_limit)
     results = []
+
+    # Initialize sets to collect languages and frameworks
+    all_languages = set()
+    all_frameworks = set()
 
     for chunk in chunks:
         # If chunk is still too large, split further based on token count
@@ -65,25 +69,39 @@ async def analyze_repo_content(content: str):
                 Your task is to identify the **programming languages** (such as Python, JavaScript, Ruby, etc.) and **frameworks** (such as Django, React, Angular, Rails, etc.) used in the project. Provide a list of the major languages and frameworks found in the repository.
                 Be sure to mention the specific language and framework for each section based on the observations from the code and configuration files.
                 Do not consider any irrelevant files or directories that do not contribute to the tech stack.
-                DO not add MIT License, README.md, or any other irrelevant files in the analysis.
-                Make sure to not add any explaination or comments only the list of languages and frameworks.
+                Do not add MIT License, README.md, or any other irrelevant files in the analysis.
+                Make sure to not add any explanation or comments, only the list of languages and frameworks.
                5. Return the result as a single dictionary with the following format:
-                                {{
+                               {{
                                     "languages": ["language_name", ...],
                                     "frameworks": ["framework_name", ...]
                                 }}
                                 Ensure no duplicates in the lists and avoid any explanations or comments.
                 """
                 message = HumanMessage(content=prompt_template)
-                
+
                 try:
                     # Initialize OpenAI API client with error handling
                     ai = ChatOpenAI(model="gpt-3.5-turbo", api_key=OPENAI_API_KEY, temperature=0)
                     ai_response = await ai.ainvoke([message])
-                    results.append(ai_response.content.strip())
-                
+                    result = ai_response.content.strip()
+
+                    # Parse the JSON response into a dictionary
+                    parsed_result = json.loads(result)
+                    print(f"parsed_result inside language agent: {parsed_result}")
+                    
+                    # Update the sets with the languages and frameworks
+                    if "languages" in parsed_result:
+                        all_languages.update(parsed_result["languages"])
+                    if "frameworks" in parsed_result:
+                        all_frameworks.update(parsed_result["frameworks"])
+
                 except Exception as e:
-                    print(f"Error during OpenAI API call: {str(e)}")
+                    print(f"Error during OpenAI API call language: {str(e)}")
                     results.append(f"Error processing this sub-chunk: {str(e)}")
-    
-    return "\n".join(results)
+
+    # Return the merged results as a dictionary
+    return {
+        "languages": list(all_languages),
+        "frameworks": list(all_frameworks)
+    }
