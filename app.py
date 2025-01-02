@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 from agent_analyze_langs import analyze_repo_content
 from agent_analyze_testing_files import analyze_repo_content_need_testing
-from agent_generate_test_suite import generate_unit_testing
+from agent_generate_test_cases import generate_test_cases
 
 
 load_dotenv()
@@ -71,14 +71,14 @@ if st.button("Analyze Repository"):
             print(f"analysis_result_langs: {analysis_result_langs_json}")
             print('==============================================================================================')
             
-            unit_test_result= asyncio.run(generate_unit_testing(modules_need_testing_json,analysis_result_langs_json))
+            test_cases= asyncio.run(generate_test_cases(modules_need_testing_json,analysis_result_langs_json))
             # Create a dictionary with the results
             result_data = {
                 "repo_url": repo_url,
                 "summary": summary,
                 "frameworks_and_languages":analysis_result_langs,
                 "modules_need_testing": analysis_result_testing,
-                "unit_test_result": unit_test_result
+                "test_cases": test_cases
             }
 
             # Convert dictionary to JSON string
