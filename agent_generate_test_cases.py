@@ -19,7 +19,7 @@ RESERVED_PROMPT_TOKENS = 1000  # Reserve tokens for the prompt
 # Function to analyze repository content and identify languages/frameworks
 
 
-async def generate_unit_testing(modules_need_testing_json: str, languages_json: str):
+async def generate_test_cases(modules_need_testing_json: str, languages_json: str):
     """
     Generates unit tests based on the provided modules and the language information.
     
@@ -75,29 +75,42 @@ async def generate_unit_testing(modules_need_testing_json: str, languages_json: 
                     language_used = " ".join(languages["languages"]) if languages else "Unknown"
 
                     prompt_template = f"""
-                    Given the following code in {language_used}:
+                        Given the following code written in {language_used}:
+                        
+                        {sub_chunk.strip()}
+                        
+                        Analyze the provided code and perform the following tasks:
+                        1. Identify all functions and classes in the code that require unit testing.
+                        2. For each identified function or class:
+                           - Generate possible test cases, including:
+                             - Positive test cases
+                             - Negative test cases
+                           - Provide detailed information for each test case, including:
+                             - Test Case ID: A unique identifier for the test case.
+                             - Test Name: A brief and descriptive name for the test case.
+                             - Description: A detailed explanation of the test case purpose.
+                             - Test Data: Input data for the test case.
+                             - Expected Output: The expected outcome of the test case.
+                        
+                        Return the result in the following JSON format:
+                        [
+                            {{
+                                "function": "<function_name>",
+                                "test_cases": [
+                                    {{
+                                        "test_case_id": "<tc>_<function_name>_<unique_number>",
+                                        "test_name": "<test_name>",
+                                        "description": "<description>",
+                                        "test_data": <test_data>,
+                                        "expected_output": <expected_output>
+                                    }},
+                                    ...
+                                ]
+                            }},
+                            ...
+                        ]
+                        """
 
-                    {sub_chunk.strip()}
-
-                    Requirements:
-                    - Identify the functions or classes in the code that require unit tests.
-                    - For each identified function or class, generate the unit test code in the appropriate format.
-                    - Provide the name of the test file and its unique ID.
-                    - The test file should be in a format that is compatible with the {language_used} testing framework (e.g., unittest for Python).
-                    - Ensure the code is complete and ready to be used for unit testing.
-                    - Do not include any irrelevant code.
-
-                    Return the result in the following format:
-                    [
-                        {{
-                            "unit_test_code": "<unit_test_code>",
-                            "name_unit_test_file": "<name_of_test_file>",
-                            "unit_test_id": "<UUID_for_unit_test>",
-                            "id": "<UUID_for_test_file>"
-                        }},
-                        ...
-                    ]
-                    """
 
                     message = HumanMessage(content=prompt_template)
                     
@@ -111,9 +124,9 @@ async def generate_unit_testing(modules_need_testing_json: str, languages_json: 
                         parsed_results = json.loads(response_content)  # Assuming OpenAI provides valid JSON-like data
                         
                         # Add unique UUIDs to each entry
-                        for item in parsed_results:
-                            item["unit_test_id"] = str(uuid.uuid4())  # UUID for unit test
-                            item["id"] = str(uuid.uuid4())  # UUID for the test file
+                       # for item in parsed_results:
+                         #   item["unit_test_id"] = str(uuid.uuid4())  # UUID for unit test
+                          #  item["id"] = str(uuid.uuid4())  # UUID for the test file
 
                         results.append(parsed_results)
 

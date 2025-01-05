@@ -49,7 +49,8 @@ async def analyze_repo_content_need_testing(content: str):
                 - Include the full path of the function or class in the code.
                 - Provide the name and type (e.g., "function" or "class").
                 - Include the complete code snippet defining the function or class.
-
+                - Library Used in test
+                - Purpose of this Unit test
 
 
                 Return the result in the following format:
