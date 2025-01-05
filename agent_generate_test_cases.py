@@ -96,9 +96,10 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                         [
                             {{
                                 "function": "<function_name>",
+                                "function_id": "<UUID_for_function>",
                                 "test_cases": [
                                     {{
-                                        "test_case_id": "<tc>_<function_name>_<unique_number>",
+                                        "test_case_id": "<UUID_for_test_case>",
                                         "test_name": "<test_name>",
                                         "description": "<description>",
                                         "test_data": <test_data>,
@@ -124,9 +125,9 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                         parsed_results = json.loads(response_content)  # Assuming OpenAI provides valid JSON-like data
                         
                         # Add unique UUIDs to each entry
-                       # for item in parsed_results:
-                         #   item["unit_test_id"] = str(uuid.uuid4())  # UUID for unit test
-                          #  item["id"] = str(uuid.uuid4())  # UUID for the test file
+                        for item in parsed_results:
+                           item["function_id"] = str(uuid.uuid4())  # UUID for unit test
+                           item["test_case_id"] = str(uuid.uuid4())  # UUID for the test file
 
                         results.append(parsed_results)
 
