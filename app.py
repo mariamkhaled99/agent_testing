@@ -24,6 +24,14 @@ st.title("Git Repository Analysis Agent")
 repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo")
 print(f"repo_url: {repo_url}")
 
+
+st.title("PDF Upload and Processing in Streamlit")
+
+uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
+
+if uploaded_file:
+    st.write("File uploaded successfully!")
+
 # Define custom CSS for scrollable sections
 st.markdown(
     """

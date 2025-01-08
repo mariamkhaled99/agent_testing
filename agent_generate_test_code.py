@@ -106,6 +106,7 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str):
                             "test_library": "<test_library>",
                             "name_unit_test_file": "<name_of_test_file>",
                             "unit_test_id": "<UUID_for_unit_test>",
+                            "category": "<category>",
                             "id": "<UUID_for_test_code_file>"
                         }},
                         ...
