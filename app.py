@@ -8,6 +8,7 @@ from agent_analyze_langs import analyze_repo_content
 from agent_analyze_testing_files import analyze_repo_content_need_testing
 from agent_generate_test_cases import generate_test_cases
 from agent_generate_test_code import generate_unit_testing_code
+import pdfplumber
 
 load_dotenv()
 
@@ -23,6 +24,27 @@ st.title("Git Repository Analysis Agent")
 # Input field for GitHub repository URL
 repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo")
 print(f"repo_url: {repo_url}")
+
+st.title("PDF Upload and Processing in Streamlit")
+
+uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
+
+if uploaded_file:
+    try:
+        # Extract text from the uploaded PDF
+        with pdfplumber.open(uploaded_file) as pdf:
+            extracted_text = ""
+            for page in pdf.pages:
+                extracted_text += page.extract_text() + "\n"
+
+        # Print the extracted text in the terminal
+        print("Extracted Text from PDF:")
+        print(extracted_text)
+        st.subheader("Extracted Text from PDF")
+        st.text_area("PDF Content:", extracted_text, height=300)
+
+    except Exception as e:
+        print(f"Error processing PDF: {e}")
 
 # Define custom CSS for scrollable sections
 st.markdown(
@@ -70,8 +92,9 @@ if st.button("Analyze Repository"):
             analysis_result_langs_json=json.dumps(analysis_result_langs, indent=4)
             print(f"analysis_result_langs: {analysis_result_langs_json}")
             print('==============================================================================================')
-            
-            test_cases= asyncio.run(generate_test_cases(modules_need_testing_json,analysis_result_langs_json))
+
+
+            test_cases= asyncio.run(generate_test_cases(modules_need_testing_json,analysis_result_langs_json,extracted_text))
             test_cases_json=json.dumps(test_cases, indent=4)
             test_code=asyncio.run(generate_unit_testing_code(test_cases_json,analysis_result_langs_json))
             # Create a dictionary with the results

@@ -19,7 +19,7 @@ RESERVED_PROMPT_TOKENS = 1000  # Reserve tokens for the prompt
 # Function to analyze repository content and identify languages/frameworks
 
 
-async def generate_test_cases(modules_need_testing_json: str, languages_json: str):
+async def generate_test_cases(modules_need_testing_json: str, languages_json: str,extracted_text:str):
     """
     Generates unit tests based on the provided modules and the language information.
     
@@ -63,7 +63,7 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
         chunks = split_into_chunks(module['code'], safe_token_limit)
 
         for chunk in chunks:
-            # Further split if a chunk exceeds the safe token limit
+            # Further split if a chunk exceeds the safe token limit+++++++++++++
             if count_tokens(chunk) > safe_token_limit:
                 smaller_chunks = split_large_chunk(chunk, safe_token_limit)
             else:
@@ -75,50 +75,60 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                     language_used = " ".join(languages["languages"]) if languages else "Unknown"
 
                     prompt_template = f"""
-                        Given the following code written in {language_used}:
-                        
-                        {sub_chunk.strip()}
-                        
-                        Analyze the provided code and perform the following tasks:
-                        1. Identify all functions and classes in the code that require unit testing.
-                        2. For each identified function or class:
-                            - Generate possible test cases, including:
-                                - **Positive Test Cases**: Test cases that validate the expected behavior under normal conditions.
-                                - **Negative Test Cases**: Test cases that validate the behavior under invalid or edge conditions.
-                                - **Boundary Test Cases**: Test cases that validate the behavior at the boundaries of input domains.
-                                - **Error Handling Test Cases**: Test cases that validate the behavior when errors or exceptions are expected.
-                            - Provide detailed information for each test case, including:
-                                - **Test Case ID**: A unique identifier for the test case.
-                                - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
-                                - **Description**: A detailed explanation of the test case purpose.
-                                - **Test Data**: Input data for the test case.
-                                - **function_id**: A unique identifier for the function or class being tested .
-                                - **Expected Output**: The expected outcome of the test case.
-                            - Ensure that the generated test cases cover various scenarios and edge cases.
-                        Do not return any explanation or comments along with the list.
-                        Return the result in the following JSON format:
-                        [
-                            {{
-                                "function": "<function_name>",
-                                "function_id": "<UUID_for_function>",
-                                "test_cases": [
-                                    {{
-                                        "test_case_id": "<UUID_for_test_case>",
-                                        "test_name": "<test_name>",
-                                        "description": "<description>",
-                                        "test_data": <test_data>,
-                                        "expected_output": <expected_output>
-                                    }},
-                                    ...
-                                ]
-                            }},
-                            ...
-                        ]
-                        """
+                            Given the following code written in {language_used}:
+
+                            {sub_chunk.strip()}
+
+                            Analyze the provided code and perform the following tasks:
+                            1. Identify all functions and classes in the code that require unit testing.
+                            2. For each identified function or class:
+                                - Generate possible test cases, including and Categorize each test case into one of the following categories:
+                                    - **Edge Cases**: Test cases that focus on extreme or boundary conditions.
+                                    - **Functional Cases**: Test cases that validate the functional requirements of the system.
+                                    - **Non-Functional Cases**: Test cases that validate non-functional aspects like performance, security, or scalability.
+                                    - **Regression Cases**: Test cases that ensure new changes do not break existing functionality.
+                                    - **Integration Tests**: Test cases that validate the interaction between different modules or systems.
+                                    - **User Acceptance Tests (UAT)**: Test cases that validate the system against user requirements and ensure it meets business needs.
+
+                            3. For **User Acceptance Tests (UAT)**:
+                            - Evaluate the code against the provided {extracted_text}.
+                            - Calculate the percentage of requirements that are met by the code.
+                            - Include this percentage in the output for UAT test cases.
+
+                                - Provide detailed information for each test case, including:
+                                    - **Test Case ID**: A unique identifier for the test case.
+                                    - **Category**: The category of the test case (e.g., Edge Cases, Functional Cases, Non-Functional Cases, Regression Cases, Integration Tests, or User Acceptance Tests (UAT)).
+                                    - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
+                                    - **Description**: A detailed explanation of the test case purpose.
+                                    - **Test Data**: Input data for the test case.
+                                    - **function_id**: A unique identifier for the function or class being tested .
+                                    - **Expected Output**: The expected outcome of the test case.
+                                - Ensure that the generated test cases cover various scenarios and edge cases.
+                            Do not return any explanation or comments along with the list.
+                            Return the result in the following JSON format:
+                            [
+                                {{
+                                    "function": "<function_name>",
+                                    "function_id": "<UUID_for_function>",
+                                    "test_cases": [
+                                        {{
+                                            "test_case_id": "<UUID_for_test_case>",
+                                            "category": "<category>",
+                                            "test_name": "<test_name>",
+                                            "description": "<description>",
+                                            "test_data": <test_data>,
+                                            "expected_output": <expected_output>
+                                        }},
+                                        ...
+                                    ]
+                                }},
+                                ...
+                            ]
+                            """
 
 
                     message = HumanMessage(content=prompt_template)
-                    
+
                     try:
                         # Initialize OpenAI API client with error handling
                         ai = ChatOpenAI(model="gpt-3.5-turbo", api_key=OPENAI_API_KEY, temperature=0)
@@ -127,7 +137,7 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                         # Parse the response and append unique UUIDs for entries
                         response_content = ai_response.content.strip()
                         parsed_results = json.loads(response_content)  # Assuming OpenAI provides valid JSON-like data
-                        
+
                         # Add unique UUIDs to each entry
                         for item in parsed_results:
                         #    item["function_id"] = str(uuid.uuid4())  # UUID for unit test

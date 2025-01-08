@@ -9,14 +9,14 @@
     },
     "modules_need_testing": [
         {
-            "id": "7a324a02-1c4f-4f9d-b5ce-a9a40343bd37",
+            "id": "e15ab04e-a502-459f-ac62-fc88c1396fd3",
             "path": "testing.py",
             "name": "login",
             "type": "function",
             "code": "def login(username, password):\n    \"\"\"\n    Simulates a login function.\n\n    Args:\n        username (str): The username for login.\n        password (str): The password for login.\n\n    Returns:\n        str: Success or failure message.\n    \"\"\"\n    if username == \"admin\" and password == \"password123\":\n        return \"Login successful!\"\n    return \"Invalid username or password.\""
         },
         {
-            "id": "607307b3-bf6f-4496-af9f-d68d59257edd",
+            "id": "c4deb614-1bff-4655-8bec-ddf89643bce3",
             "path": "testing.py",
             "name": "sum_two_values",
             "type": "function",
@@ -26,12 +26,13 @@
     "test_cases": [
         {
             "function": "login",
-            "function_id": "f7d7e3a1-4b3a-4c7b-bf7d-1c4f3e2d8f1a",
+            "function_id": "f1a2b3c4",
             "test_cases": [
                 {
-                    "test_case_id": "1",
-                    "test_name": "test_login_valid_credentials",
-                    "description": "Test login with valid username and password.",
+                    "test_case_id": "t1a",
+                    "category": "Functional Cases",
+                    "test_name": "test_login_success",
+                    "description": "Test the login function with correct credentials.",
                     "test_data": {
                         "username": "admin",
                         "password": "password123"
@@ -39,100 +40,121 @@
                     "expected_output": "Login successful!"
                 },
                 {
-                    "test_case_id": "2",
-                    "test_name": "test_login_invalid_username",
-                    "description": "Test login with invalid username.",
+                    "test_case_id": "t1b",
+                    "category": "Functional Cases",
+                    "test_name": "test_login_failure",
+                    "description": "Test the login function with incorrect credentials.",
                     "test_data": {
-                        "username": "user123",
-                        "password": "password123"
-                    },
-                    "expected_output": "Invalid username or password."
-                },
-                {
-                    "test_case_id": "3",
-                    "test_name": "test_login_invalid_password",
-                    "description": "Test login with invalid password.",
-                    "test_data": {
-                        "username": "admin",
-                        "password": "pass123"
-                    },
-                    "expected_output": "Invalid username or password."
-                },
-                {
-                    "test_case_id": "4",
-                    "test_name": "test_login_invalid_credentials",
-                    "description": "Test login with both invalid username and password.",
-                    "test_data": {
-                        "username": "user123",
-                        "password": "pass123"
+                        "username": "user",
+                        "password": "pass"
                     },
                     "expected_output": "Invalid username or password."
                 }
             ],
-            "test_case_id": "0148baf4-aa8b-4df6-b57e-d4ac5be34cbc"
+            "test_case_id": "c362351f-bb40-4f95-b369-a3bdfc4085e7"
         },
         {
             "function": "sum_two_values",
-            "function_id": "f7d7e3a1-4b3a-4c7d-bf7a-1c4f3e2d8f1a",
+            "function_id": "s5t6u7",
             "test_cases": [
                 {
-                    "test_case_id": "1",
-                    "test_name": "test_add_positive_numbers",
-                    "description": "Test adding two positive numbers",
-                    "test_data": {
-                        "a": 5,
-                        "b": 3
-                    },
-                    "expected_output": 8
-                },
-                {
-                    "test_case_id": "2",
-                    "test_name": "test_add_negative_numbers",
-                    "description": "Test adding a negative and a positive number",
-                    "test_data": {
-                        "a": -2,
-                        "b": 7
-                    },
-                    "expected_output": 5
-                },
-                {
-                    "test_case_id": "3",
-                    "test_name": "test_add_zero",
-                    "description": "Test adding zero to a number",
+                    "test_case_id": "t2a",
+                    "category": "Functional Cases",
+                    "test_name": "test_sum_integers",
+                    "description": "Test the sum function with integer inputs.",
                     "test_data": {
                         "a": 10,
-                        "b": 0
+                        "b": 20
                     },
-                    "expected_output": 10
+                    "expected_output": 30
                 },
                 {
-                    "test_case_id": "4",
-                    "test_name": "test_add_float_numbers",
-                    "description": "Test adding two float numbers",
+                    "test_case_id": "t2b",
+                    "category": "Functional Cases",
+                    "test_name": "test_sum_floats",
+                    "description": "Test the sum function with float inputs.",
                     "test_data": {
                         "a": 3.5,
-                        "b": 2.5
+                        "b": 4.5
                     },
-                    "expected_output": 6.0
+                    "expected_output": 8.0
                 }
             ],
-            "test_case_id": "69e6f362-bf5d-46e3-869d-ace2e4e9dc83"
+            "test_case_id": "4a45f226-a6aa-429c-abfa-95b7a9b4a2d6"
+        },
+        {
+            "function": "sum_two_values",
+            "function_id": "f1a2b3c4",
+            "test_cases": [
+                {
+                    "test_case_id": "t1a2b3c4",
+                    "category": "Functional Cases",
+                    "test_name": "test_add_positive_numbers",
+                    "description": "Test the sum of two positive numbers.",
+                    "test_data": {
+                        "a": 10,
+                        "b": 20
+                    },
+                    "expected_output": 30
+                },
+                {
+                    "test_case_id": "t1a2b3c5",
+                    "category": "Functional Cases",
+                    "test_name": "test_add_float_numbers",
+                    "description": "Test the sum of two float numbers.",
+                    "test_data": {
+                        "a": 3.5,
+                        "b": 4.5
+                    },
+                    "expected_output": 8.0
+                },
+                {
+                    "test_case_id": "t1a2b3c6",
+                    "category": "Regression Cases",
+                    "test_name": "test_add_negative_numbers",
+                    "description": "Test the sum of two negative numbers.",
+                    "test_data": {
+                        "a": -10,
+                        "b": -20
+                    },
+                    "expected_output": -30
+                },
+                {
+                    "test_case_id": "t1a2b3c7",
+                    "category": "Edge Cases",
+                    "test_name": "test_add_zero_numbers",
+                    "description": "Test the sum of zero and a number.",
+                    "test_data": {
+                        "a": 0,
+                        "b": 100
+                    },
+                    "expected_output": 100
+                }
+            ],
+            "test_case_id": "2bb6d51b-b67b-4d44-85cd-93a32774f205"
         }
     ],
     "test_code": [
         {
-            "unit_test_code": "import unittest\nfrom your_module import login\n\nclass TestLogin(unittest.TestCase):\n    def test_login_valid_credentials(self):\n        result = login('admin', 'password123')\n        self.assertEqual(result, 'Login successful!')\n\n    def test_login_invalid_username(self):\n        result = login('user123', 'password123')\n        self.assertEqual(result, 'Invalid username or password.')\n\n    def test_login_invalid_password(self):\n        result = login('admin', 'pass123')\n        self.assertEqual(result, 'Invalid username or password.')\n\n    def test_login_invalid_credentials(self):\n        result = login('user123', 'pass123')\n        self.assertEqual(result, 'Invalid username or password.')",
+            "unit_test_code": "import unittest\nfrom your_module import login\n\nclass TestLogin(unittest.TestCase):\n    def test_login_success(self):\n        result = login('admin', 'password123')\n        self.assertEqual(result, 'Login successful!')\n\n    def test_login_failure(self):\n        result = login('user', 'pass')\n        self.assertEqual(result, 'Invalid username or password.')",
             "test_library": "unittest",
             "name_unit_test_file": "test_login.py",
-            "unit_test_id": "bba4f795-3dd8-47ab-96bc-c694902e993c",
-            "id": "2dffa549-83fc-4853-9234-736730441fe7"
+            "unit_test_id": "1f6ddacc-f904-496e-ac36-da94e658fa28",
+            "id": "ba8b0f55-91ad-402c-806d-ca04239abefe"
         },
         {
-            "unit_test_code": "import unittest\nfrom your_module import sum_two_values\n\nclass TestSumTwoValues(unittest.TestCase):\n    def test_add_positive_numbers(self):\n        self.assertEqual(sum_two_values(5, 3), 8)\n\n    def test_add_negative_numbers(self):\n        self.assertEqual(sum_two_values(-2, 7), 5)\n\n    def test_add_zero(self):\n        self.assertEqual(sum_two_values(10, 0), 10)\n\n    def test_add_float_numbers(self):\n        self.assertEqual(sum_two_values(3.5, 2.5), 6.0)\n",
+            "unit_test_code": "import unittest\nfrom s5t6u7 import sum_two_values\n\nclass TestSumFunction(unittest.TestCase):\n    def test_sum_integers(self):\n        result = sum_two_values(10, 20)\n        self.assertEqual(result, 30)\n\n    def test_sum_floats(self):\n        result = sum_two_values(3.5, 4.5)\n        self.assertEqual(result, 8.0)",
             "test_library": "unittest",
             "name_unit_test_file": "test_sum_two_values.py",
-            "unit_test_id": "985fc85c-f9a6-4153-a97f-6c07fd17f5f4",
-            "id": "90286c63-5a93-4caa-8786-e7fefec7e894"
+            "unit_test_id": "e5366439-2218-41e4-a2a7-99cd5e875542",
+            "id": "3ecc0564-61a3-4a11-8296-89e453f5bf9b"
+        },
+        {
+            "unit_test_code": "import unittest\nfrom your_module import sum_two_values\n\nclass TestSumTwoValues(unittest.TestCase):\n    def test_add_positive_numbers(self):\n        self.assertEqual(sum_two_values(10, 20), 30)\n\n    def test_add_float_numbers(self):\n        self.assertEqual(sum_two_values(3.5, 4.5), 8.0)\n\n    def test_add_negative_numbers(self):\n        self.assertEqual(sum_two_values(-10, -20), -30)\n\n    def test_add_zero_numbers(self):\n        self.assertEqual(sum_two_values(0, 100), 100)\n",
+            "test_library": "unittest",
+            "name_unit_test_file": "test_sum_two_values.py",
+            "unit_test_id": "c912b25a-6197-4ea5-acd9-1c2ee5c8f0c8",
+            "id": "80a9d499-701f-4995-a715-5c91e55cafa6"
         }
     ]
 }
