@@ -92,7 +92,7 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                                 - **User Acceptance Tests (UAT)**: Test cases that validate the system against user requirements and ensure it meets business needs.
 
                         3. For **User Acceptance Tests (UAT)**:
-                        - Evaluate the code against the provided requirements text {{extracted_text}}.
+                        - Evaluate the code against the provided requirements text {extracted_text}.
                         - Calculate the percentage of requirements that are met by the code.
                         - Include this percentage in the output for UAT test cases.
                         
