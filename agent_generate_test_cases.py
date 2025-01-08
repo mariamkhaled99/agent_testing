@@ -82,16 +82,20 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                         Analyze the provided code and perform the following tasks:
                         1. Identify all functions and classes in the code that require unit testing.
                         2. For each identified function or class:
-                           - Generate possible test cases, including:
-                             - Positive test cases
-                             - Negative test cases
-                           - Provide detailed information for each test case, including:
-                             - Test Case ID: A unique identifier for the test case.
-                             - Test Name: A brief and descriptive name for the test case.
-                             - Description: A detailed explanation of the test case purpose.
-                             - Test Data: Input data for the test case.
-                             - Expected Output: The expected outcome of the test case.
-                        
+                            - Generate possible test cases, including:
+                                - **Positive Test Cases**: Test cases that validate the expected behavior under normal conditions.
+                                - **Negative Test Cases**: Test cases that validate the behavior under invalid or edge conditions.
+                                - **Boundary Test Cases**: Test cases that validate the behavior at the boundaries of input domains.
+                                - **Error Handling Test Cases**: Test cases that validate the behavior when errors or exceptions are expected.
+                            - Provide detailed information for each test case, including:
+                                - **Test Case ID**: A unique identifier for the test case.
+                                - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
+                                - **Description**: A detailed explanation of the test case purpose.
+                                - **Test Data**: Input data for the test case.
+                                - **function_id**: A unique identifier for the function or class being tested .
+                                - **Expected Output**: The expected outcome of the test case.
+                            - Ensure that the generated test cases cover various scenarios and edge cases.
+                        Do not return any explanation or comments along with the list.
                         Return the result in the following JSON format:
                         [
                             {{
@@ -126,13 +130,13 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                         
                         # Add unique UUIDs to each entry
                         for item in parsed_results:
-                           item["function_id"] = str(uuid.uuid4())  # UUID for unit test
+                        #    item["function_id"] = str(uuid.uuid4())  # UUID for unit test
                            item["test_case_id"] = str(uuid.uuid4())  # UUID for the test file
 
                         results.append(parsed_results)
 
                     except Exception as e:
-                        print(f"Error during OpenAI API call unit test: {str(e)}")
+                        print(f"Error during OpenAI API call unit test cases: {str(e)}")
                         results.append(f"Error processing this chunk: {str(e)}")
 
     # Combine all results into a single list of JSON entries

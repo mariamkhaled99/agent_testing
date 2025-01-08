@@ -18,13 +18,12 @@ RESERVED_PROMPT_TOKENS = 1000  # Reserve tokens for the prompt
 
 # Function to analyze repository content and identify languages/frameworks
 
-
-async def generate_unit_testing(modules_need_testing_json: str, languages_json: str):
+async def generate_unit_testing_code(test_cases_json: str, languages_json: str):
     """
-    Generates unit tests based on the provided modules and the language information.
+    Generates unit tests based on the provided test cases and the language information.
     
     Parameters:
-    - modules_need_testing_json (str): JSON containing the modules or code needing testing.
+    - test_cases_json (str): JSON containing the test cases for the functions.
     - languages_json (str): JSON containing information about the languages used in the code.
 
     Returns:
@@ -34,33 +33,38 @@ async def generate_unit_testing(modules_need_testing_json: str, languages_json: 
     # Define safe token limit for content chunks
     safe_token_limit = MAX_TOKENS - RESERVED_PROMPT_TOKENS
 
-    # Parse modules and languages from the provided JSONs
+    # Parse test cases and languages from the provided JSONs
     try:
-        modules = json.loads(modules_need_testing_json)
+        test_cases = json.loads(test_cases_json)
     except json.JSONDecodeError as e:
-        print(f"Error parsing modules_need_testing_json: {e}")
+        print(f"Error parsing test_cases_json: {e}")
         return []
 
-    # Try to parse the languages JSON safely
     try:
         languages = json.loads(languages_json)
     except json.JSONDecodeError as e:
         print(f"Error parsing languages_json: {e}")
         return []
 
-    # Ensure that languages_json is a list and the first item has the expected structure
-    # or len(languages) == 0 or not isinstance(languages[0], dict) or "languages" not in languages[0]
+    # Validate the structure of languages_json
     if not isinstance(languages, dict) or len(languages.get('languages')) == 0 or not isinstance(languages.get('languages')[0], str):
-        print("Invalid format for languages_json. It should be a list of dictionaries with a 'languages' key.")
+        print("Invalid format for languages_json. It should be a dictionary with a 'languages' key containing a list of strings.")
         return []
 
-    # Split the modules into chunks and prepare the results container
+    # Prepare the results container
     results = []
 
-    # Loop through the modules and process each one
-    for module in modules:
-        # Split the content of each module into manageable chunks
-        chunks = split_into_chunks(module['code'], safe_token_limit)
+    # Loop through the test cases and process each one
+    for test_case in test_cases:
+        function_name = test_case.get("function", "Unknown")
+        function_id = test_case.get("function_id", str(uuid.uuid4()))
+        test_cases_list = test_case.get("test_cases", [])
+
+        # Convert the test cases list to a JSON string for chunking
+        test_cases_json_str = json.dumps(test_cases_list, indent=2)
+
+        # Split the test cases JSON into manageable chunks
+        chunks = split_into_chunks(test_cases_json_str, safe_token_limit)
 
         for chunk in chunks:
             # Further split if a chunk exceeds the safe token limit
@@ -74,26 +78,35 @@ async def generate_unit_testing(modules_need_testing_json: str, languages_json: 
                     # Get the language used (assuming you want the first language)
                     language_used = " ".join(languages["languages"]) if languages else "Unknown"
 
+                    # Prepare the prompt for generating unit tests
                     prompt_template = f"""
-                    Given the following code in {language_used}:
+                    Given the following function in {language_used}:
 
+                    Function Name: {function_name}
+                    Function ID: {function_id}
+
+                    Test Cases:
                     {sub_chunk.strip()}
 
                     Requirements:
-                    - Identify the functions or classes in the code that require unit tests.
-                    - For each identified function or class, generate the unit test code in the appropriate format.
+                    - Generate unit tests for the function based on the provided test cases.
+                    - Use the appropriate testing framework for {language_used} (e.g., unittest for Python).
+                    - Ensure the unit tests cover all provided test cases, including their descriptions and expected outputs.
+                    - Include assertions to validate the expected outputs.
                     - Provide the name of the test file and its unique ID.
-                    - The test file should be in a format that is compatible with the {language_used} testing framework (e.g., unittest for Python).
+                    -provide the name of the test library used in the test.
                     - Ensure the code is complete and ready to be used for unit testing.
                     - Do not include any irrelevant code.
+                    - Do not return any explanation or comments along with the list.
 
-                    Return the result in the following format:
+                    Return only the result in the following format:
                     [
                         {{
                             "unit_test_code": "<unit_test_code>",
+                            "test_library": "<test_library>",
                             "name_unit_test_file": "<name_of_test_file>",
                             "unit_test_id": "<UUID_for_unit_test>",
-                            "id": "<UUID_for_test_file>"
+                            "id": "<UUID_for_test_code_file>"
                         }},
                         ...
                     ]
@@ -108,6 +121,7 @@ async def generate_unit_testing(modules_need_testing_json: str, languages_json: 
 
                         # Parse the response and append unique UUIDs for entries
                         response_content = ai_response.content.strip()
+                        print(f"response_content for code : {response_content}")
                         parsed_results = json.loads(response_content)  # Assuming OpenAI provides valid JSON-like data
                         
                         # Add unique UUIDs to each entry
@@ -118,7 +132,7 @@ async def generate_unit_testing(modules_need_testing_json: str, languages_json: 
                         results.append(parsed_results)
 
                     except Exception as e:
-                        print(f"Error during OpenAI API call unit test: {str(e)}")
+                        print(f"Error during OpenAI API call unit test code: {str(e)}")
                         results.append(f"Error processing this chunk: {str(e)}")
 
     # Combine all results into a single list of JSON entries

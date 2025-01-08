@@ -51,6 +51,7 @@ async def analyze_repo_content_need_testing(content: str):
                 - Include the complete code snippet defining the function or class.
                 - Library Used in test
                 - Purpose of this Unit test
+                - Do not return any explanation or comments along with the list.
 
 
                 Return the result in the following format:
@@ -88,7 +89,7 @@ async def analyze_repo_content_need_testing(content: str):
                     results.append(parsed_results)
 
                 except Exception as e:
-                    print(f"Error during OpenAI API call returning needed fuction to test: {str(e)}")
+                    print(f"Error during OpenAI API call files: {str(e)}")
                     results.append(f"Error processing this sub-chunk: {str(e)}")
     
     # Combine all results into a single list of JSON entries
