@@ -70,69 +70,131 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
 
                     for text_chunk in extracted_text_chunks:
                         prompt_template = f"""
-                            Given the following code written in {language_used}:
-                            
-                            {sub_chunk.strip()}
-                            
-                            Analyze the provided code and perform the following tasks:
-                            1. Identify all functions and classes in the code that require unit testing.
-                            2. For each identified function or class:
-                                - Generate possible test cases, including and Categorize each test case into one of the following categories:
-                                    - **Edge Cases**: Test cases that focus on extreme or boundary conditions.
-                                    - **Functional Cases**: Test cases that validate the functional requirements of the system.
-                                    - **Non-Functional Cases**: Test cases that validate non-functional aspects like performance, security, or scalability.
-                                    - **Regression Cases**: Test cases that ensure new changes do not break existing functionality.
-                                    - **Integration Tests**: Test cases that validate the interaction between different modules or systems.
-                                    - **User Acceptance Tests (UAT)**: Test cases that validate the system against user requirements and ensure it meets business needs.
+                        Given the following code written in {language_used}:
 
-                            3. For **User Acceptance Tests (UAT)**:
-                            - Evaluate the code against the provided requirements text:
-                            
+                        {sub_chunk.strip()}
+
+                        Analyze the provided code and perform the following tasks:
+                        1. Identify all functions and classes in the code that require unit testing.
+                        2. For each identified function or class:
+                            - Generate possible test cases, categorizing each test case into one or more of the following **categories** and **subcategories** depending on the description:
+
+                                - **Edge Cases**: Test cases that focus on extreme or boundary conditions.
+                                    - Subcategories:
+                                        - Boundary value analysis.
+                                        - Extreme input scenarios.
+                                        - Stress testing with unusual inputs.
+
+                                - **Functional Cases**: Test cases that validate the functional requirements of the system.
+                                    - Subcategories:
+                                        - Core functionality testing.
+                                        - Input validation testing.
+                                        - Output verification testing.
+
+                                - **Non-Functional Cases**: Test cases that validate non-functional aspects like performance, security, or scalability.
+                                    - Subcategories:
+                                        - Performance testing.
+                                        - Security testing.
+                                        - Usability testing.
+
+                                - **Regression Cases**: Test cases that ensure new changes do not break existing functionality.
+                                    - Subcategories:
+                                        - Re-testing existing features.
+                                        - Bug fix verification.
+                                        - Side-effect testing.
+
+                                - **Integration Tests**: Test cases that validate the interaction between different modules or systems.
+                                    - Subcategories:
+                                        - API integration testing.
+                                        - Data flow testing.
+                                        - Cross-module compatibility testing.
+
+                                - **User Acceptance Tests (UAT)**: Test cases that validate the whole system against user requirements and ensure it meets business needs.
+                                    - Subcategories:
+                                        - End-to-end workflow testing.
+                                        - Business requirement validation.
+                                        - User experience testing.
+
+                                - **Positive Cases**: Test cases that validate the system behaves as expected under normal or ideal conditions.
+                                    - Subcategories:
+                                        - Valid input testing.
+                                        - Ideal scenario testing.
+                                        - Expected output verification.
+
+                                - **Negative Cases**: Test cases that validate the system handles unexpected or adverse conditions gracefully.
+                                    - Subcategories:
+                                        - Invalid input testing.
+                                        - Error handling testing.
+                                        - Exception scenario testing.
+
+                        3. For **User Acceptance Tests (UAT)**:
+                            - Generate only **one UAT test case** for the whole code.
+                            - Evaluate the whole code against the provided requirements text:
+
                             {text_chunk.strip()}
-                            
+
                             - Calculate the percentage of requirements that are met by the code.
                             - Include this percentage in the output for UAT test cases.
-                            
-                            4. For **Regression Cases**:
+                            - For UAT test cases, Ensure to only include the following fields:
+                                - `test_case_id`
+                                - `category`
+                                - `test_name`
+                                - `description`
+                                - `requirements_met_percentage`
+                            - Set all other fields to `null`.
+
+                        4. For **Regression Cases**:
                             - Generate test cases that ensure new changes or updates do not break existing functionality.
                             - Include test cases for:
                                 - Re-testing previously working features after a code change.
                                 - Verifying fixes for previously reported bugs.
-                                - Make the is_regression is false as default and do not include it in the output unless the is_regression is true.
-                            - Ensure that regression test cases are clearly labeled and documented.
-                            
-                                - Provide detailed information for each test case, including:
-                                    - **Test Case ID**: A unique identifier for the test case.
-                                    - **Category**: The category of the test case can be more than one depend on the test case  (e.g., Edge Cases, Functional Cases, Non-Functional Cases, Regression Cases, Integration Tests, or User Acceptance Tests (UAT)).
-                                    - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
-                                    - **Description**: A detailed explanation of the test case purpose.
-                                    - **Test Data**: Input data for the test case.
-                                    - **function_id**: A unique identifier for the function or class being tested.
-                                    - **Expected Output**: The expected outcome of the test case.
-                                - Ensure that the generated test cases cover various scenarios and edge cases.
-                            Do not return any explanation or comments along with the list.
-                            Return the result in the following JSON format:
-                            [
-                                {{
-                                    "function": "<function_name>",
-                                    "function_id": "<UUID_for_function>",
-                                    "test_cases": [
-                                        {{
-                                            "test_case_id": "<UUID_for_test_case>",
-                                            "category": "[<category1>,<category2>,...etc],",
-                                            "test_name": "<test_name>",
-                                            "description": "<description>",
-                                            "test_data": <test_data>,
-                                            "expected_output": <expected_output>,
-                                            "requirements_met_percentage": <percentage>  // Only for UAT test cases
-                                            "is_regression": <True/False>  // Only for Regression test cases
-                                        }},
-                                        ...
-                                    ]
-                                }},
-                                ...
-                            ]
-                            """
+                            - Only include the `is_regression` field if it is `true`.
+
+                        5. For each test case except uaT test cases:
+                            - Provide detailed information, including:
+                                - **Test Case ID**: A unique identifier for the test case.
+                                - **Category**: The category and subcategory of the test case (e.g., "Edge Cases > Boundary value analysis").
+                                - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
+                                - **Description**: A detailed explanation of the test case purpose.
+                                - **Test Data**: Input data for the test case.
+                                - **function_id**: A unique identifier for the function or class being tested.
+                                - **Expected Output**: The expected outcome of the test case.
+                                - **requirements_met_percentage**: The percentage of requirements met by the code (only for UAT test cases).
+                                - **is_regression**: A boolean indicating if the test case is a regression test (only for Regression Cases).
+
+                        6. Ensure that the generated test cases cover various scenarios and edge cases.
+                        Do not return any explanation or comments along with the list.
+
+                        Return the result in the following JSON format:
+                        [
+                            {{
+                                "function": "<function_name>",
+                                "function_id": "<UUID_for_function>",
+                                "test_cases": [
+                                    {{
+                                        "test_case_id": "<UUID_for_test_case>",
+                                        "category": "<category> > <subcategory>",
+                                        "test_name": "<test_name>",
+                                        "description": "<description>",
+                                        "test_data": <test_data>,
+                                        "expected_output": <expected_output>,
+                                        "requirements_met_percentage": 0,  // Only for UAT test cases
+                                        "is_regression": <True/False>  // Only for Regression test cases
+                                    }},
+                                    {{
+                                        "test_case_id": "<UUID_for_test_case>",
+                                        "category": "User Acceptance Tests (UAT) > <subcategory>",
+                                        "test_name": "<uat_test_test_case_id>",
+                                        "description": " Evaluate the whole code against the provided requirements text and return the percentage of requirements met.",
+                                        "requirements_met_percentage": <percentage>,  // Only for UAT test cases
+                                        "is_regression": <True/False>  // Only for Regression test cases
+                                    }},
+                                    ...
+                                ]
+                            }},
+                            ...
+                        ]
+                        """
 
                         message = HumanMessage(content=prompt_template)
                         
