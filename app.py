@@ -30,21 +30,21 @@ repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https:
 print(f"repo_url: {repo_url}")
 
 
-GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
-GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY")
-GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
+# GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
+# GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY")
+# GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
 
-# Read the private key from the file
-if GITHUB_APP_PRIVATE_KEY_FILE:
-    with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
-        GITHUB_APP_PRIVATE_KEY = key_file.read()
+# # Read the private key from the file
+# if GITHUB_APP_PRIVATE_KEY_FILE:
+#     with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
+#         GITHUB_APP_PRIVATE_KEY = key_file.read()
 
 
-# Generate JWT
-jwt_token = generate_jwt(GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY)
+# # Generate JWT
+# jwt_token = generate_jwt(GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY)
 
-# Get installation access token
-access_token = get_installation_access_token(jwt_token, GITHUB_REPOSITORY)
+# # Get installation access token
+# access_token = get_installation_access_token(jwt_token, GITHUB_REPOSITORY)
 
 # # Define a GraphQL query
 # query = """

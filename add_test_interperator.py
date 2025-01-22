@@ -5,45 +5,50 @@ import subprocess
 import re
 import shutil
 import stat
+import os
+import sys
 
 # Function to install a Python package
 def install_package(package_name):
     try:
-        subprocess.check_call(["pip", "install", package_name])
-        st.success(f"Successfully installed {package_name}!")
-    except subprocess.CalledProcessError as e:
-        st.error(f"Failed to install {package_name}: {e}")
+        os.system(f"pip install {package_name}")
+        print(f"Successfully installed {package_name}!")
+        st.info(f"Successfully installed {package_name}!")
 
+        
+    except Exception as e:
+        print(f"Failed to install {package_name}: {e}")
 
 def clone_repo(repo_url):
     """Clone the repository."""
     try:
-        subprocess.check_call(["git", "clone", repo_url])
+        os.system(f"git clone {repo_url}")
         print(f"Successfully cloned repository: {repo_url}")
-    except subprocess.CalledProcessError as e:
+        st.info(f"Successfully cloned repository: {repo_url}")
+    except Exception as e:
         print(f"Failed to clone repository: {e}")
-        exit(1)
+        sys.exit(1)
 
 def navigate_into_repo_folder(repo_name):
     """Navigate into the repository folder."""
     try:
         os.chdir(repo_name)
         print(f"Navigated into repository folder: {repo_name}")
+        st.info(f"Navigated into repository folder: {repo_name}")
     except FileNotFoundError:
         print(f"Repository folder not found: {repo_name}")
-        exit(1)
-
-
+        sys.exit(1)
 
 def create_virtual_environment():
     """Create a virtual environment."""
     try:
-        subprocess.check_call(["python", "-m", "venv", "venv"])
+        os.system("python -m venv venv")
         print("Virtual environment created successfully.")
-    except subprocess.CalledProcessError as e:
+        st.info("Virtual environment created successfully.")
+    except Exception as e:
         print(f"Failed to create virtual environment: {e}")
-        exit(1)
-        
+        sys.exit(1)
+
 def activate_virtual_environment():
     """Activate the virtual environment."""
     try:
@@ -56,40 +61,42 @@ def activate_virtual_environment():
             command = f"source {activate_script}"  # Use 'source' to execute the shell script
 
         # Run the activation command in the shell
-        subprocess.check_call(command, shell=True)
+        os.system(command)
         print("Virtual environment activated successfully.")
-
-    except subprocess.CalledProcessError as e:
+        st.info("Virtual environment activated successfully.")
+    except Exception as e:
         print(f"Failed to activate virtual environment: {e}")
-        exit(1)
-
+        sys.exit(1)
 
 def install_requirements():
     """Install requirements from requirements.txt if it exists."""
     if os.path.exists("requirements.txt"):
         try:
-            subprocess.check_call(["pip", "install", "-r", "requirements.txt"])
+            os.system("pip install -r requirements.txt")
             print("Requirements installed successfully.")
-        except subprocess.CalledProcessError as e:
+            st.info("Requirements installed successfully.")
+        except Exception as e:
             print(f"Failed to install requirements: {e}")
-            exit(1)
+            sys.exit(1)
     else:
         print("requirements.txt not found. Skipping requirements installation.")
 
 def install_testing_library():
     """Install the testing library (pytest)."""
     try:
-        subprocess.check_call(["pip", "install", "pytest"])
+        os.system("pip install pytest")
         print("pytest installed successfully.")
-    except subprocess.CalledProcessError as e:
+        st.info("pytest installed successfully.")
+    except Exception as e:
         print(f"Failed to install pytest: {e}")
-        exit(1)
+        sys.exit(1)
 
 def create_tests_folder():
     """Create a tests folder for unit tests."""
     if not os.path.exists("tests"):
         os.makedirs("tests")
         print("Created tests folder.")
+        st.info("Created tests folder.")
     else:
         print("Tests folder already exists.")
 
@@ -109,67 +116,71 @@ python_functions = test_* check_*
     with open("pytest.ini", "w") as f:
         f.write(pytest_ini_content)
     print("Created pytest.ini file.")
+    st.info("Created pytest.ini file.")
 
 
 
-# Function to run pytest and capture results for each test method
+
 def run_pytest_and_capture_results(file_path):
     try:
         # Construct the full path to the test file
         full_path = os.path.join("tests", file_path)
         
         # Run pytest with the --collect-only flag to list all test methods
-        collect_result = subprocess.run(
-            ["pytest", full_path, "--collect-only"],
-            capture_output=True,
-            text=True
-        )
-        if collect_result.returncode != 0:
-            st.error("Error collecting test methods.")
-            return []
+        collect_output = os.popen(f"pytest {full_path} --collect-only").read()
+        
+        # Check if the command was successful
+        if "ERROR" in collect_output or "FAILED" in collect_output:
+            print("Error collecting test methods.")
+            return {}
 
         # Extract test method names from the output
-        test_methods = re.findall(r"<Function\s+(test_\w+)>", collect_result.stdout)
+        test_methods = re.findall(r"<Function\s+(test_\w+)>", collect_output)
 
         # Run pytest and capture the results
-        result = subprocess.run(
-            ["pytest", full_path, "-v"],
-            capture_output=True,
-            text=True
-        )
+        pytest_output = os.popen(f"pytest {full_path} -v").read()
+
+        # Debug: Print raw pytest output
+        print("Raw pytest output:")
+        print(pytest_output)
 
         # Parse the results to determine which tests passed or failed
         test_results = {}
-        for line in result.stdout.splitlines():
-            print(f"line:{line}")
-            if "PASSED" in line:
-                test_name = re.search(r"::test_\w+", line).group()
-                test_name=test_name.replace('::','')
-                test_results[test_name] = "✅"
-            elif "FAILED" in line or "ERROR" in line:
-                test_name = re.search(r"::test_\w+", line).group()
-                test_name=test_name.replace('::','')
-                test_results[test_name] = "❌"
+        for line in pytest_output.splitlines():
+            if "PASSED" in line or "FAILED" in line or "ERROR" in line:
+                # Match the test name more precisely
+                match = re.search(r"(\w+::test_\w+)", line)
+                if match:
+                    test_name = match.group(1).replace('::', '')
+                    if test_name not in test_results:  # Ensure each test is only added once
+                        if "PASSED" in line:
+                            test_results[test_name] = "✅"
+                        elif "FAILED" in line or "ERROR" in line:
+                            test_results[test_name] = "❌"
 
         return test_results
 
     except Exception as e:
-        st.error(f"Error running pytest: {e}")
+        print(f"Error running pytest: {e}")
         return {}
-
 # Function to extract test method names from the code
 def extract_test_methods(code):
     # Use regex to find all test method names
     test_methods = re.findall(r"def\s+(test_\w+)", code)
     return test_methods
 
+
 def run_tests():
     """Run the tests using pytest."""
-    try:
-        subprocess.check_call(["pytest"])
-    except subprocess.CalledProcessError as e:
-        print(f"Tests failed: {e}")
-        exit(1)
+    # Run pytest using os.system
+    return_code = os.system("pytest")
+    
+    # Check the return code
+    if return_code != 0:
+        print("Tests failed.")
+        sys.exit(1)
+    else:
+        print("All tests passed!")
 
 # Function to save unit test code to a file
 def save_test_file(file_path, code):
@@ -318,9 +329,11 @@ def run_test(repo_url, repo_name, json_input, language):
             # Run tests and display results
             for item in data:
                 tested_function = extract_tested_function(item["unit_test_code"])
+                
                 if tested_function:
                     test_file_name = f"test_{tested_function}.py"
                     test_results = run_pytest_and_capture_results(test_file_name)
+                    print(f"test_results:{test_results}")
                     st.write(f"Test Results for {tested_function}:")
                     for test_name, result in test_results.items():
                         st.write(f"{result} {test_name}")
@@ -338,11 +351,11 @@ def run_test(repo_url, repo_name, json_input, language):
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-        delete_repo(repo_name)
+     
 
-    finally:
+    # finally:
         # Cleanup: Delete the cloned repo
-        delete_repo(repo_name)
+        # delete_repo(repo_name)
 
     
 

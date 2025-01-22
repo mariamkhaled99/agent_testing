@@ -17,11 +17,38 @@ from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
 
+from github_app_auth import generate_jwt, get_installation_access_token
 from utils import get_repo_name
 
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
+# GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY_File")
+# # GITHUB_APP_PRIVATE_KEY=os.getenv("GITHUB_APP_PRIVATE_KEY")
+
+# # GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
+
+# # # Read the private key from the file
+# if GITHUB_APP_PRIVATE_KEY_FILE:
+#     with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
+#         GITHUB_APP_PRIVATE_KEY = key_file.read()
+
+GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
+GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY")
+GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
+
+# Read the private key from the file
+if GITHUB_APP_PRIVATE_KEY_FILE:
+    with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
+        GITHUB_APP_PRIVATE_KEY = key_file.read()
+
+
+# Generate JWT
+jwt_token = generate_jwt(GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY)
+
+# Get installation access token
+access_token = get_installation_access_token(jwt_token, GITHUB_REPOSITORY)
 
 
 # Use an event loop policy compatible with subprocesses on Windows
