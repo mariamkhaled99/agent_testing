@@ -34,21 +34,21 @@ load_dotenv()
 #     with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
 #         GITHUB_APP_PRIVATE_KEY = key_file.read()
 
-GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
-GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY")
-GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
+# GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
+# GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY")
+# GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
 
-# Read the private key from the file
-if GITHUB_APP_PRIVATE_KEY_FILE:
-    with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
-        GITHUB_APP_PRIVATE_KEY = key_file.read()
+# # Read the private key from the file
+# if GITHUB_APP_PRIVATE_KEY_FILE:
+#     with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
+#         GITHUB_APP_PRIVATE_KEY = key_file.read()
 
 
-# Generate JWT
-jwt_token = generate_jwt(GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY)
+# # Generate JWT
+# jwt_token = generate_jwt(GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY)
 
-# Get installation access token
-access_token = get_installation_access_token(jwt_token, GITHUB_REPOSITORY)
+# # Get installation access token
+# access_token = get_installation_access_token(jwt_token, GITHUB_REPOSITORY)
 
 
 # Use an event loop policy compatible with subprocesses on Windows
@@ -236,7 +236,7 @@ def webhook():
 
 def run_webhook_server():
     """Run the Flask webhook server on port 3000."""
-    app.run(host='0.0.0.0', port=3001)  # Listen on all network interfaces
+    app.run(host='0.0.0.0', port=3000)  # Listen on all network interfaces
 
 # Start the webhook server in a separate thread
 webhook_thread = threading.Thread(target=run_webhook_server)
