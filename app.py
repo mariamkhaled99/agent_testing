@@ -4,11 +4,14 @@ import json
 from gitingest import ingest
 from dotenv import load_dotenv
 import os
-from agent_analyze_langs import analyze_repo_content
-from agent_analyze_testing_files import analyze_repo_content_need_testing
-from agent_generate_test_cases import generate_test_cases
-from agent_generate_test_code import generate_unit_testing_code
+from add_test_interperator import run_test
+from agents.agent_analyze_langs import analyze_repo_content
+from agents.agent_analyze_testing_files import analyze_repo_content_need_testing
+from agents.agent_generate_test_cases import generate_test_cases
+from agents.agent_generate_test_code import generate_unit_testing_code
 import pdfplumber
+from github_app_auth import generate_jwt, get_installation_access_token
+from utils import get_repo_name
 
 load_dotenv()
 
@@ -18,6 +21,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if hasattr(asyncio, "WindowsProactorEventLoopPolicy"):
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
+
 # Title of the app
 st.title("Git Repository Analysis Agent")
 
@@ -25,6 +29,75 @@ st.title("Git Repository Analysis Agent")
 repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo")
 print(f"repo_url: {repo_url}")
 
+
+GITHUB_APP_ID= os.getenv("GITHUB_APP_ID")
+GITHUB_APP_PRIVATE_KEY_FILE=os.getenv("GITHUB_APP_PRIVATE_KEY")
+GITHUB_REPOSITORY=os.getenv("GITHUB_REPOSITORY")
+
+# Read the private key from the file
+if GITHUB_APP_PRIVATE_KEY_FILE:
+    with open(GITHUB_APP_PRIVATE_KEY_FILE, "r") as key_file:
+        GITHUB_APP_PRIVATE_KEY = key_file.read()
+
+
+# Generate JWT
+jwt_token = generate_jwt(GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY)
+
+# Get installation access token
+access_token = get_installation_access_token(jwt_token, GITHUB_REPOSITORY)
+
+# # Define a GraphQL query
+# query = """
+
+
+# query {
+#   repository(owner: "mariamkhaled99", name: "ABI-Backend-Assesment") {
+#     defaultBranchRef {
+#       target {
+#         ... on Commit {
+#           oid
+#           history(first: 1) {
+#             edges {
+#               node {
+                
+#                 message
+#                 committedDate
+#                 changedFilesIfAvailable
+             
+#                 }
+#               }
+#             }
+#           }
+#         }
+#       }
+#     }
+#   }
+
+#   # repository(owner: "mariamkhaled99", name: "ABI-Backend-Assesment") {
+#   #   ref(qualifiedName: "main") {
+#   #     target {
+#   #       commitUrl
+#   #     }
+#   #   }
+#   # }
+  
+
+
+# """
+
+# # Replace OWNER and REPO with your repository details
+# query = query.replace("OWNER", GITHUB_REPOSITORY.split("/")[0])
+# query = query.replace("REPO", GITHUB_REPOSITORY.split("/")[1])
+
+# # Make the GraphQL request
+# result = make_graphql_request(access_token, query)
+# print(result)
+
+
+
+
+    
+    
 st.title("PDF Upload and Processing in Streamlit")
 
 uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
@@ -85,18 +158,18 @@ if st.button("Analyze Repository"):
             print('==============================================================================================')
             print('==============================================================================================')
             
-            modules_need_testing_json=json.dumps(analysis_result_testing, indent=4)
+            # modules_need_testing_json=json.dumps(analysis_result_testing, indent=4)
             print('==============================================================================================')
-            print(f"modules_need_testing: {modules_need_testing_json}")
+            print(f"modules_need_testing: {analysis_result_testing}")
             print('==============================================================================================')
             analysis_result_langs_json=json.dumps(analysis_result_langs, indent=4)
             print(f"analysis_result_langs: {analysis_result_langs_json}")
             print('==============================================================================================')
 
 
-            test_cases= asyncio.run(generate_test_cases(modules_need_testing_json,analysis_result_langs_json,extracted_text))
-            test_cases_json=json.dumps(test_cases, indent=4)
-            test_code=asyncio.run(generate_unit_testing_code(test_cases_json,analysis_result_langs_json))
+            test_cases= asyncio.run(generate_test_cases(analysis_result_testing,analysis_result_langs_json,extracted_text,False))
+            # test_cases_json=json.dumps(test_cases, indent=4)
+            test_code=asyncio.run(generate_unit_testing_code(test_cases,analysis_result_langs_json,False))
             # Create a dictionary with the results
             result_data = {
                 "repo_url": repo_url,
@@ -110,9 +183,20 @@ if st.button("Analyze Repository"):
             # Convert dictionary to JSON string
             result_json = json.dumps(result_data, indent=4)
             
+            languages= analysis_result_langs.get('languages')
+            
+            print(f"analysis_result_langs:{analysis_result_langs}")
+           
+            
+            
+            
             # Display the JSON data
             st.subheader("Analysis Results in JSON Format")
             st.json(result_data)  # Display the JSON in a formatted way
+            
+            repo_name=repo_name = get_repo_name(repo_url)
+            
+            run_test(repo_url,repo_name,test_code,languages)
 
             # You can also save it to a file if needed
             with open("repo_analysis_result.json", "w") as json_file:

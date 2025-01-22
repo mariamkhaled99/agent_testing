@@ -1,5 +1,6 @@
 import re
 from tiktoken import encoding_for_model
+from urllib.parse import urlparse
 # Function to count tokens
 def count_tokens(text, model="gpt-3.5-turbo"):
     enc = encoding_for_model(model)
@@ -41,5 +42,17 @@ def split_into_chunks(text, max_size):
 
         return chunks
     
+def get_repo_name(url):
+    # Parse the URL
+    parsed_url = urlparse(url)
     
+    # Split the path to get the parts
+    path_parts = parsed_url.path.strip('/').split('/')
+    
+    # The repository name is the second part of the path
+    if len(path_parts) >= 2:
+        return path_parts[1]
+    else:
+        return None    
+   
    

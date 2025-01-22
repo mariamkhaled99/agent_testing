@@ -179,7 +179,7 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                                         "test_data": <test_data>,
                                         "expected_output": <expected_output>,
                                         "requirements_met_percentage": 0,  // Only for UAT test cases
-                                        "is_regression": <True/False>  // Only for Regression test cases
+                                        "is_regression": True/False>  // Only for Regression test cases
                                     }},
                                     {{
                                         "test_case_id": "<UUID_for_test_case>",
