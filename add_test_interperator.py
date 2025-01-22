@@ -353,9 +353,9 @@ def run_test(repo_url, repo_name, json_input, language):
         st.error(f"An error occurred: {e}")
      
 
-    # finally:
+    finally:
         # Cleanup: Delete the cloned repo
-        # delete_repo(repo_name)
+        delete_repo(repo_name)
 
     
 
