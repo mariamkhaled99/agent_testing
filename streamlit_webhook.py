@@ -102,16 +102,11 @@ def handle_webhook_delivery(payload, event_type):
                         file_name = file_data.get('name')
                         file_content_encoded = file_data.get('content')
                         file_content_decoded = base64.b64decode(file_content_encoded).decode('utf-8')
-                        
-                        # file name
-                        st.title(f"file name modified :{file_name}")
-                        
 
                         print(f"File: {file_name}")
                         print("===========================================================================================")
                         print(f"Decoded Content:\n{file_content_decoded}")
                         content = file_content_decoded
-                        st.write(f"content in {file_name}: {content}")
 
                         # Perform analysis on the content
                         try:
@@ -235,142 +230,141 @@ webhook_thread = threading.Thread(target=run_webhook_server)
 webhook_thread.daemon = True  # Daemonize thread to stop it when the main program exits
 webhook_thread.start()
 
-while not webhook_event_received:
-    # Title of the app
-    st.title("Git Repository Analysis Agent")
 
-    # Input field for GitHub repository URL
-    repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo")
-    print(f"repo_url: {repo_url}")
+# Title of the app
+st.title("Git Repository Analysis Agent")
+
+# Input field for GitHub repository URL
+repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo")
+print(f"repo_url: {repo_url}")
+
+# Streamlit App
+st.title("GitHub Webhook Listener with Streamlit")
+st.write("This Streamlit app listens for GitHub webhooks in the background.")
+
+# Add your Streamlit components here
+st.write("Check the console for webhook events.")
 
 
-    # Streamlit App
-    st.title("GitHub Webhook Listener with Streamlit")
-    st.write("This Streamlit app listens for GitHub webhooks in the background.")
+    
+st.title("PDF Upload and Processing in Streamlit")
 
-    # Add your Streamlit components here
-    st.write("Check the console for webhook events.")
+uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
 
+if uploaded_file:
+    try:
+        # Extract text from the uploaded PDF
+        with pdfplumber.open(uploaded_file) as pdf:
+            extracted_text = ""
+            for page in pdf.pages:
+                extracted_text += page.extract_text() + "\n"
 
-        
-    st.title("PDF Upload and Processing in Streamlit")
+        # Print the extracted text in the terminal
+        print("Extracted Text from PDF:")
+        print(extracted_text)
+        st.subheader("Extracted Text from PDF")
+        st.text_area("PDF Content:", extracted_text, height=300)
 
-    uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
+    except Exception as e:
+        print(f"Error processing PDF: {e}")
 
-    if uploaded_file:
+# Define custom CSS for scrollable sections
+st.markdown(
+    """
+    <style>
+    .scrollable-section {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        color: #000; 
+        font-family: monospace;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+if st.button("Analyze Repository"):
+    if repo_url:
         try:
-            # Extract text from the uploaded PDF
-            with pdfplumber.open(uploaded_file) as pdf:
-                extracted_text = ""
-                for page in pdf.pages:
-                    extracted_text += page.extract_text() + "\n"
+            # Ensure repo_url is valid before proceeding
+            if not repo_url.startswith("http"):
+                raise ValueError("The provided URL must start with 'http' or 'https'.")
 
-            # Print the extracted text in the terminal
-            print("Extracted Text from PDF:")
-            print(extracted_text)
-            st.subheader("Extracted Text from PDF")
-            st.text_area("PDF Content:", extracted_text, height=300)
+            st.info("Processing the repository, please wait...")
+            print("before ingest")
+            summary, tree, content = ingest(repo_url)  # Ensure repo_url is defined here
+            print(f"summary: {summary}")
+
+            # Perform analysis on the content
+            analysis_result_langs = asyncio.run(analyze_repo_content(content))
+            analysis_result_testing = asyncio.run(analyze_repo_content_need_testing(content))
+            print('==============================================================================================')
+            print(f"analysis_result_langs before json: {analysis_result_langs}")
+            print('==============================================================================================')
+            print('==============================================================================================')
+            
+            # modules_need_testing_json=json.dumps(analysis_result_testing, indent=4)
+            print('==============================================================================================')
+            print(f"modules_need_testing: {analysis_result_testing}")
+            print('==============================================================================================')
+            analysis_result_langs_json=json.dumps(analysis_result_langs, indent=4)
+            print(f"analysis_result_langs: {analysis_result_langs_json}")
+            print('==============================================================================================')
+
+
+            test_cases= asyncio.run(generate_test_cases(analysis_result_testing,analysis_result_langs_json,extracted_text,False))
+            
+            test_code=asyncio.run(generate_unit_testing_code(test_cases,analysis_result_langs_json,False))
+            # Create a dictionary with the results
+            result_data = {
+                "repo_url": repo_url,
+                "summary": summary,
+                "frameworks_and_languages":analysis_result_langs,
+                "modules_need_testing": analysis_result_testing,
+                "test_cases": test_cases,
+                "test_code":test_code
+            }
+
+            # Convert dictionary to JSON string
+            result_json = json.dumps(result_data, indent=4)
+            user_repo = repo_url.replace("https://github.com/", "")
+            # Remove any trailing slashes or additional paths
+            user_repo = user_repo.split("/")[0] + "/" + user_repo.split("/")[1]
+            print(f"Extracted user/repo: {user_repo}")
+           
+            repo_fullname=user_repo
+            history = StreamlitChatMessageHistory(key=f"{repo_fullname}")
+
+            history.add_user_message(result_json )
+            print("==========================================================================================")
+            print(f"history.messages:{history.messages}")
+            print("===========================================================================================")
+            # Display the JSON data
+            st.subheader("Analysis Results in JSON Format")
+            st.json(result_data)  # Display the JSON in a formatted way
+            
+            languages= analysis_result_langs.get('languages')
+            
+            print(f"analysis_result_langs:{analysis_result_langs}")
+            
+            repo_name=repo_name = get_repo_name(repo_url)
+            
+            run_test(repo_url,repo_name,test_code,languages)
+
+            # # You can also save it to a file if needed
+            # with open("repo_analysis_result.json", "w") as json_file:
+            #     json.dump(result_data, json_file, indent=4)
+            # st.success("Results saved to repo_analysis_result.json")
 
         except Exception as e:
-            print(f"Error processing PDF: {e}")
-
-    # Define custom CSS for scrollable sections
-    st.markdown(
-        """
-        <style>
-        .scrollable-section {
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            color: #000; 
-            font-family: monospace;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if st.button("Analyze Repository"):
-        if repo_url:
-            try:
-                # Ensure repo_url is valid before proceeding
-                if not repo_url.startswith("http"):
-                    raise ValueError("The provided URL must start with 'http' or 'https'.")
-
-                st.info("Processing the repository, please wait...")
-                print("before ingest")
-                summary, tree, content = ingest(repo_url)  # Ensure repo_url is defined here
-                print(f"summary: {summary}")
-
-                # Perform analysis on the content
-                analysis_result_langs = asyncio.run(analyze_repo_content(content))
-                analysis_result_testing = asyncio.run(analyze_repo_content_need_testing(content))
-                print('==============================================================================================')
-                print(f"analysis_result_langs before json: {analysis_result_langs}")
-                print('==============================================================================================')
-                print('==============================================================================================')
-                
-                # modules_need_testing_json=json.dumps(analysis_result_testing, indent=4)
-                print('==============================================================================================')
-                print(f"modules_need_testing: {analysis_result_testing}")
-                print('==============================================================================================')
-                analysis_result_langs_json=json.dumps(analysis_result_langs, indent=4)
-                print(f"analysis_result_langs: {analysis_result_langs_json}")
-                print('==============================================================================================')
-
-
-                test_cases= asyncio.run(generate_test_cases(analysis_result_testing,analysis_result_langs_json,extracted_text,False))
-                
-                test_code=asyncio.run(generate_unit_testing_code(test_cases,analysis_result_langs_json,False))
-                # Create a dictionary with the results
-                result_data = {
-                    "repo_url": repo_url,
-                    "summary": summary,
-                    "frameworks_and_languages":analysis_result_langs,
-                    "modules_need_testing": analysis_result_testing,
-                    "test_cases": test_cases,
-                    "test_code":test_code
-                }
-
-                # Convert dictionary to JSON string
-                result_json = json.dumps(result_data, indent=4)
-                user_repo = repo_url.replace("https://github.com/", "")
-                # Remove any trailing slashes or additional paths
-                user_repo = user_repo.split("/")[0] + "/" + user_repo.split("/")[1]
-                print(f"Extracted user/repo: {user_repo}")
-            
-                repo_fullname=user_repo
-                history = StreamlitChatMessageHistory(key=f"{repo_fullname}")
-
-                history.add_user_message(result_json )
-                print("==========================================================================================")
-                print(f"history.messages:{history.messages}")
-                print("===========================================================================================")
-                # Display the JSON data
-                st.subheader("Analysis Results in JSON Format")
-                st.json(result_data)  # Display the JSON in a formatted way
-                
-                languages= analysis_result_langs.get('languages')
-                
-                print(f"analysis_result_langs:{analysis_result_langs}")
-                
-                repo_name=repo_name = get_repo_name(repo_url)
-                
-                run_test(repo_url,repo_name,test_code,languages)
-
-                # # You can also save it to a file if needed
-                # with open("repo_analysis_result.json", "w") as json_file:
-                #     json.dump(result_data, json_file, indent=4)
-                # st.success("Results saved to repo_analysis_result.json")
-
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
-                import traceback
-                st.text(traceback.format_exc())
-        else:
-            st.warning("Please enter a valid repository URL.")
+            st.error(f"An error occurred: {e}")
+            import traceback
+            st.text(traceback.format_exc())
+    else:
+        st.warning("Please enter a valid repository URL.")
 
 
