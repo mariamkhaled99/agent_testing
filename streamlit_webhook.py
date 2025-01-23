@@ -235,7 +235,7 @@ webhook_thread.start()
 st.title("Git Repository Analysis Agent")
 
 # Input field for GitHub repository URL
-repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo")
+repo_url = st.text_input("Enter the GitHub Repository URL:", placeholder="https://github.com/user/repo",key="repo_url_input")
 print(f"repo_url: {repo_url}")
 
 # Streamlit App
@@ -337,11 +337,11 @@ if st.button("Analyze Repository"):
             print(f"Extracted user/repo: {user_repo}")
            
             repo_fullname=user_repo
-            history = StreamlitChatMessageHistory(key=f"{repo_fullname}")
+            # history = StreamlitChatMessageHistory(key=f"{repo_fullname}")
 
-            history.add_user_message(result_json )
+            # history.add_user_message(result_json )
             print("==========================================================================================")
-            print(f"history.messages:{history.messages}")
+            # print(f"history.messages:{history.messages}")
             print("===========================================================================================")
             # Display the JSON data
             st.subheader("Analysis Results in JSON Format")
