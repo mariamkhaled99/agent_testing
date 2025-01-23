@@ -211,19 +211,19 @@ def webhook():
 
 
 
-# def find_free_port():
-#     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-#         s.bind(('', 0))
-#         s.listen(1)
-#         port = s.getsockname()[1]
-#     return port
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+    return port
 
 
 
 def run_webhook_server():
-    # port=find_free_port()
+    port=find_free_port()
     """Run the Flask webhook server on port 3000."""
-    app.run(host='0.0.0.0', port=5000)  # Listen on all network interfaces
+    app.run(host='0.0.0.0', port=port)  # Listen on all network interfaces
 
 # Start the webhook server in a separate thread
 webhook_thread = threading.Thread(target=run_webhook_server)
