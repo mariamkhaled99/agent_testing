@@ -19,7 +19,8 @@ from langchain_community.chat_message_histories import (
 
 from github_app_auth import generate_jwt, get_installation_access_token
 from utils import get_repo_name
-
+import socket
+from contextlib import closing
 load_dotenv()
 
 # OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -234,9 +235,21 @@ def webhook():
 
     return response
 
+
+
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+    return port
+
+
+
 def run_webhook_server():
+    port=find_free_port()
     """Run the Flask webhook server on port 3003."""
-    app.run(host='0.0.0.0', port=3003)  # Listen on all network interfaces
+    app.run(host='0.0.0.0', port=port)  # Listen on all network interfaces
 
 # Start the webhook server in a separate thread
 webhook_thread = threading.Thread(target=run_webhook_server)
