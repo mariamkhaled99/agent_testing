@@ -235,8 +235,8 @@ def webhook():
     return response
 
 def run_webhook_server():
-    """Run the Flask webhook server on port 3000."""
-    app.run(host='0.0.0.0', port=3000)  # Listen on all network interfaces
+    """Run the Flask webhook server on port 3003."""
+    app.run(host='0.0.0.0', port=3003)  # Listen on all network interfaces
 
 # Start the webhook server in a separate thread
 webhook_thread = threading.Thread(target=run_webhook_server)
