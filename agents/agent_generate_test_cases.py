@@ -56,6 +56,9 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
     extracted_text_chunks = split_into_chunks(extracted_text, safe_token_limit)
     print("========================================text chunks=============================================")
     print(f"extracted_text_chunks: {extracted_text_chunks}")
+    if not extracted_text_chunks:
+        text_chunk="relay on the code "
+        
     results = []
 
     for module in modules:
@@ -72,69 +75,71 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
                 if sub_chunk.strip():
                     language_used = " ".join(languages["languages"]) if languages else "Unknown"
 
-                    # for text_chunk in extracted_text_chunks:
-                    prompt_template = [
-                    {"role": "system", "content": "You are a professional software tester."},
-                    {"role": "user", "content":f"""
-                        Given the following code written in {language_used}:
+                    for text_chunk in extracted_text_chunks:
+                        prompt_template = [
+                        {"role": "system", "content": "You are a professional software tester."},
+                        {"role": "user", "content":f"""
+                            Given the following code written in {language_used}:
 
-                       
+                        
 
-                        Analyze the provided code and perform the following tasks:
-                        1. For all the Identified  functions and classes in the code that require unit testing {sub_chunk.strip()}.
-                        2. Generate possible test cases, categorizing each test case into the following **categories** and **subcategories** depending on the description:
+                            Analyze the provided code and perform the following tasks:
+                            1. For all the Identified  functions and classes in the code that require unit testing {sub_chunk.strip()}.
+                            2. Compare the identified functions and classes against the provided requirements text: {text_chunk.strip()}
+                            3.Generate test cases specific to how these functions and classes fulfill or interact with the provided requirements.
+                            4. Generate possible test cases, categorizing each test case into the following **categories** and **subcategories** depending on the description:
 
-                                - **Edge Cases**: Test cases that focus on extreme or boundary conditions.
-                                    - Subcategories:
-                                        - Boundary value analysis.
-                                        - Extreme input scenarios.
-                                        - Stress testing with unusual inputs.
+                                    - **Edge Cases**: Test cases that focus on extreme or boundary conditions.
+                                        - Subcategories:
+                                            - Boundary value analysis.
+                                            - Extreme input scenarios.
+                                            - Stress testing with unusual inputs.
 
-                                - **Functional Cases**: Test cases that validate the functional requirements of the system.
-                                    - Subcategories:
-                                        - Core functionality testing.
-                                        - Input validation testing.
-                                        - Output verification testing.
+                                    - **Functional Cases**: Test cases that validate the functional requirements of the system.
+                                        - Subcategories:
+                                            - Core functionality testing.
+                                            - Input validation testing.
+                                            - Output verification testing.
 
 
-                        5. For each test case :
-                            - Provide detailed information, including:
-                                - **Test Case ID**: A unique identifier for the test case.
-                                - **Category**: The category and subcategory of the test case (e.g., "Edge Cases > Boundary value analysis").
-                                - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
-                                - **Description**: A detailed explanation of the test case purpose.
-                                - **Test Data**: Input data for the test case.
-                                - **function_id**: A unique identifier for the function or class being tested.
-                                - **function_path**:specifies the location of the function or class being tested within the codebase {function_path}. so It is used to generate the correct import statement in the unit test code, ensuring that the tests can access the function or class being tested.
-                                - **Expected Output**: The expected outcome of the test case.
-                                - **requirements_met_percentage**: The percentage of requirements met by the code (only for UAT test cases).
-                                - **is_regression**: A boolean indicating if the test case is a regression test (only for Regression Cases).
+                            5. For each test case :
+                                - Provide detailed information, including:
+                                    - **Test Case ID**: A unique identifier for the test case.
+                                    - **Category**: The category and subcategory of the test case (e.g., "Edge Cases > Boundary value analysis").
+                                    - **Test Name**: A brief and descriptive name for the test case (e.g., "test_add_positive_numbers", "test_divide_by_zero").
+                                    - **Description**: A detailed explanation of the test case purpose.
+                                    - **Test Data**: Input data for the test case.
+                                    - **function_id**: A unique identifier for the function or class being tested.
+                                    - **function_path**:specifies the location of the function or class being tested within the codebase {function_path}. so It is used to generate the correct import statement in the unit test code, ensuring that the tests can access the function or class being tested.
+                                    - **Expected Output**: The expected outcome of the test case.
+                                    - **requirements_met_percentage**: The percentage of requirements met by the code (only for UAT test cases).
+                                    - **is_regression**: A boolean indicating if the test case is a regression test (only for Regression Cases).
 
-                        6. Ensure that the generated test cases cover various scenarios and edge cases.
-                        Do not return any explanation or comments along with the list.
+                            6. Ensure that the generated test cases cover various scenarios and edge cases.
+                            Do not return any explanation or comments along with the list.
 
-                        Return the result in the following JSON format:
-                                {{
-                                    "test_cases_result": [
-                                        {{
-                                            "function": "<function_name>",
-                                            "function_id": "<UUID_for_function>",
-                                            "function_path":"<function_path>",
-                                            "test_cases": [
-                                                {{
-                                                    "test_case_id": "<UUID_for_test_case>",
-                                                    "category": "<category> > <subcategory>",
-                                                    "test_name": "<test_name>",
-                                                    "description": "<description>",
-                                                    "test_data": <test_data>,
-                                                    "expected_output": <expected_output>,
-                                                    "is_regression": <is_regression>
-                                                }}
-                                            ]
-                                        }}
-                                    ]
-                                }}
-                        """}]
+                            Return the result in the following JSON format:
+                                    {{
+                                        "test_cases_result": [
+                                            {{
+                                                "function": "<function_name>",
+                                                "function_id": "<UUID_for_function>",
+                                                "function_path":"<function_path>",
+                                                "test_cases": [
+                                                    {{
+                                                        "test_case_id": "<UUID_for_test_case>",
+                                                        "category": "<category> > <subcategory>",
+                                                        "test_name": "<test_name>",
+                                                        "description": "<description>",
+                                                        "test_data": <test_data>,
+                                                        "expected_output": <expected_output>,
+                                                        "is_regression": <is_regression>
+                                                    }}
+                                                ]
+                                            }}
+                                        ]
+                                    }}
+                            """}]
 
                         # message = HumanMessage(content=prompt_template)
                         
