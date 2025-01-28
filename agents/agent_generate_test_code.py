@@ -81,6 +81,7 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
                 if sub_chunk.strip():  # Skip empty chunks
                     # Get the language used (assuming you want the first language)
                     language_used = " ".join(languages["languages"]) if languages else "Unknown"
+                    framework_used = " ".join(languages["frameworks"]) if languages else "Unknown"
 
                     # Prepare the prompt for generating unit tests
                     prompt_template =[
@@ -97,8 +98,9 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
 
                     Requirements:
                     - Generate unit tests for the function based on the provided test cases.
-                    - Use the appropriate testing framework for {language_used} (e.g., pytest for Python , Jest for javascript or nodejs).
-                    Import the function from the correct function path: `{function_path}`.
+                    - Use the appropriate testing library for {language_used} , use this library ( pytest for Python , Jest for javascript or nodejs).
+                    - Make sure to not use any other testing library .
+                    - Make sure to Import the function from the correct function path: `{function_path}`.
                     - Ensure the unit tests cover all the provided test cases, including their descriptions and expected outputs.
                     - Include assertions to validate the expected outputs.
                     - Provide the name of the test file and its unique ID.
@@ -106,6 +108,7 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
                     - Ensure the code is complete and ready to be used for unit testing.
                     - Do not include any irrelevant code.
                     - Do not return any explanation or comments along with the list.
+                    - Determine the root path in case of django where the manage.py exist , else is None .
 
                     Return the result in the following JSON format:
                     
@@ -117,7 +120,9 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
                                 "path":"path_test_file>",
                                 "unit_test_id": "<UUID_for_unit_test>",
                                 "category": "<category>",
-                                "id": "<UUID_for_test_code_file>"
+                                "id": "<UUID_for_test_code_file>",
+                                "project_root_path":"<project_root_path>",
+                                
                             }},
                             ...
                         ] }}
@@ -146,6 +151,7 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
                                     "category":snippet.category,
                                     "is_regression":is_regression,
                                     "path":snippet.path,
+                                    "project_root_path":snippet.project_root_path,
                                     "unit_test_id":str(uuid.uuid4()),
                                     "id":str(uuid.uuid4()),
                                     

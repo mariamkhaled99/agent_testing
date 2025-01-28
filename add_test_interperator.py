@@ -198,7 +198,7 @@ def save_test_file(file_path, code):
 # Function to extract the function being tested from the code
 def extract_tested_function(code):
     # Use regex to find the function being tested
-    match = re.search(r"from\s+\w+\s+import\s+(\w+)", code)
+    match = re.search(r"from\s+[\w\.]+\s+import\s+(\w+)", code)
     if match:
         return match.group(1)
     return None
@@ -208,6 +208,7 @@ def create_test_files_for_functions(data):
     for item in data:
         code = item["unit_test_code"]
         tested_function = extract_tested_function(code)
+        print(f"tested_function name:{tested_function}")
         if tested_function:
             # Create a test file named test_<function_name>.py
             test_file_name = f"test_{tested_function}.py"
@@ -353,12 +354,11 @@ def run_test(repo_url, repo_name, json_input, language):
         st.error(f"An error occurred: {e}")
      
 
-    finally:
-        # Cleanup: Delete the cloned repo
-        delete_repo(repo_name)
+    # finally:
+    #     # Cleanup: Delete the cloned repo
+    #     delete_repo(repo_name)
 
     
 
    
-# if __name__ == "__main__":
     

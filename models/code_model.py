@@ -9,6 +9,7 @@ class UnitTest(BaseModel):
     category: str  # Category of the test (e.g., "validation", "integration")
     is_regression: bool  
     path:str
+    project_root_path:str
     id: str  # UUID for the test code file
 
 class UnitTestList(BaseModel):
