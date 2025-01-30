@@ -21,7 +21,8 @@ client = OpenAI()
 
 # Function to analyze repository content and identify languages/frameworks
 
-async def generate_unit_testing_code(test_cases_json: str, languages_json: str,is_regression:bool):
+async def generate_unit_testing_code(test_cases_json: str, languages_json: str,is_regression:bool,tree=None,user_repo=None):
+    print(f"tree:{tree}")
     """
     Generates unit tests based on the provided test cases and the language information.
     
@@ -98,10 +99,45 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
 
                     Requirements:
                     - Generate unit tests for the function based on the provided test cases.
-                    - Use the appropriate testing library for {language_used} , use this library ( pytest for Python , Jest for javascript or nodejs).
+                    - Use the appropriate testing library for framework :{framework_used} and if there is no framework use the suitable library for language : {language_used} , use this library (unittest for Django, pytest for Python , Jest for javascript or nodejs).
                     - Make sure to not use any other testing library .
                     - Make sure to Import the function from the correct function path: `{function_path}`.
                     - Ensure the unit tests cover all the provided test cases, including their descriptions and expected outputs.
+
+                    If {framework_used} contains 'Django', then:
+
+                        1. **Test Only Existing Models and Fields:**  
+                        - Generate tests only for models and fields that exist in the provided Django models.  
+                        - Avoid testing or referencing non-existent models or fields.  
+
+                        2. **Use Django's ORM Methods:**  
+                        - Always use Django's ORM methods for CRUD operations:  
+                            - `Model.objects.create()` to create new objects.  
+                            ```python
+                            instance = MyModel.objects.create(field1="value1", field2="value2")
+                            ```
+                            - `Model.objects.all()` to retrieve all objects from the model.  
+                            ```python
+                            all_instances = MyModel.objects.all()
+                            self.assertEqual(all_instances.count(), expected_count)
+                            ```  
+
+                        3. **Assertions:**  
+                        - Use Django's built-in assertion methods to validate behavior:  
+                            ```python
+                            self.assertEqual(instance.field1, "value1")
+                            self.assertTrue(instance.is_active)
+                            self.assertRaises(MyModel.DoesNotExist, MyModel.objects.get, id=999)
+                            ```  
+
+                        4. **View Testing:**  
+                        - Only generate tests for views (functions or classes) that exist in the project.  
+                        - Use Django's test client to simulate HTTP requests.  
+                        - **Do not use** `reverse` from `django.urls` or manually provide URL paths.  
+                            ```python
+                            response = self.client.get("/existing-endpoint/")
+                            self.assertEqual(response.status_code, 200)
+                            ```  
                     - Include assertions to validate the expected outputs.
                     - Provide the name of the test file and its unique ID.
                     -provide the name of the test library used in the test.
@@ -109,6 +145,8 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
                     - Do not include any irrelevant code.
                     - Do not return any explanation or comments along with the list.
                     - Determine the root path in case of django where the manage.py exist , else is None .
+                    - Determine the path of manage.py file: if {framework_used} contains Django using the project tree tructure {tree}  
+                      make sure to remove the {user_repo} and the - after it from the project_root_path , make sure that project_root_path does not start with /
 
                     Return the result in the following JSON format:
                     
@@ -142,6 +180,7 @@ async def generate_unit_testing_code(test_cases_json: str, languages_json: str,i
                         print(f"parsed_results using parser: {parsed_results}")
                         
                         # Extract test cases from parsed_results
+                        
           
                         unit_tests = [
                                 {

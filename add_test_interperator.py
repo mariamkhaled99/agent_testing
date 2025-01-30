@@ -120,6 +120,30 @@ python_functions = test_* check_*
 
 
 
+def run_django_tests_and_capture_results():
+    try:
+        # Run `python manage.py test` and redirect output to a file
+        command = "python manage.py test tests --verbosity=2 > test_output.txt 2>&1"
+        print(f"Running command: {command}")
+
+        # Execute the command and capture output in the test_output.txt file
+        os.system(command)
+
+        # Now, read the contents of the file to get the test results
+        with open('test_output.txt', 'r') as file:
+            test_output = file.read()
+
+        # Debug: Print raw test output
+        print("Raw Django test output:")
+        print("====================================================")
+        print(test_output)
+        print("====================================================")
+
+        return test_output
+
+    except Exception as e:
+        print(f"Error running Django tests: {e}")
+        return {}
 
 def run_pytest_and_capture_results(file_path):
     try:
@@ -202,6 +226,27 @@ def extract_tested_function(code):
     if match:
         return match.group(1)
     return None
+
+def extract_tested_function_django(unit_test_code):
+    # Example implementation to extract tested function (you can replace it with your logic)
+    # You can use regex or other methods to get the function name being tested
+    match = re.search(r"def (\w+)\(", unit_test_code)
+    if match:
+        return match.group(1)
+    return None
+
+
+def create_test_files_for_functions_django(data):
+    for item in data:
+        code = item["unit_test_code"]
+        tested_function = extract_tested_function_django(code)
+        print(f"tested_function name:{tested_function}")
+        if tested_function:
+            # Create a test file named test_<function_name>.py
+            test_file_name = f"test_{tested_function}.py"
+            save_test_file(test_file_name, code)
+        else:
+            st.warning(f"Could not determine the function being tested in: {item['unit_test_id']}")
 
 # Function to create a separate test file for each function
 def create_test_files_for_functions(data):
@@ -305,41 +350,115 @@ def delete_repo(repo_name):
             print(f"Repository '{repo_name}' not found. No deletion performed.")
     except Exception as e:
         print(f"An error occurred while deleting the repository: {e}")
+        
+        
+def navigate_to_root_folder(root_folder_path):
+    """Navigate to the specified root folder."""
+    print("i am in navigate django root where mange.py exist ...")
+    
+    try:
+        os.chdir(root_folder_path)  # Change to the root folder path provided
+        print(f"Navigated to root folder: {root_folder_path}")
+    except FileNotFoundError:
+        print(f"Root folder not found: {root_folder_path}")
+        sys.exit(1)
+    except PermissionError:
+        print(f"Permission denied while accessing: {root_folder_path}")
+        sys.exit(1)
 
 
-def run_test(repo_url, repo_name, json_input, language):
+def extract_test_results(output):
+    # Define a pattern that matches from the "System check identified no issues" to the end of the tests.
+    pattern = r"(System check identified no issues \(0 silenced\).+?)(test_.+?)(?=\n\n|$)"
+    
+    match = re.search(pattern, output, re.DOTALL)
+    
+    if match:
+        return match.group(2).strip()  # Extract the test results
+    return None
+
+
+def run_test(repo_url, repo_name, json_input, language,framework):
     st.title("Unit Test Runner with Streamlit")
+    
+   
     
     # Parse JSON input
     data = json.loads(json_input)
+    project_root_path = data[0]['project_root_path']
     
     # Clone the repo and navigate into it
     clone_repo(repo_url=repo_url)
-    navigate_into_repo_folder(repo_name=repo_name)
+    
 
     try:
         if 'Python' in language or 'python' in language:
-            print(f"Python in list: {language}")
-            create_virtual_environment()
-            activate_virtual_environment()
-            install_package("pytest")
-            install_requirements()
-            create_pytest_ini()
-            create_test_files_for_functions(data)
+            if 'Django' in framework or 'django' in framework:
+                print("i am in django ....")
+                print(f"project_root_path:{project_root_path}")
+                navigate_to_root_folder(project_root_path)
+                create_virtual_environment()
+                activate_virtual_environment()
+                install_requirements()
+                create_test_files_for_functions_django(data)
+                test_results = run_django_tests_and_capture_results()
+                    
+                if test_results:
+                    print(f"test_results in django: {test_results}")
 
-            # Run tests and display results
-            for item in data:
-                tested_function = extract_tested_function(item["unit_test_code"])
-                
-                if tested_function:
-                    test_file_name = f"test_{tested_function}.py"
-                    test_results = run_pytest_and_capture_results(test_file_name)
-                    print(f"test_results:{test_results}")
-                    st.write(f"Test Results for {tested_function}:")
-                    for test_name, result in test_results.items():
-                        st.write(f"{result} {test_name}")
+                    # Extract number of tests found
+                    match_summary = re.search(r"Found (\d+) test\(s\)", test_results)
+                    num_tests = int(match_summary.group(1)) if match_summary else 0
+                    print(f"Found: {num_tests} tests")
+                    st.write(f"Found: {num_tests} tests")
+                    test_cases = re.findall(r"(test_[^\s]+) \(([^)]+)\) \.\.\. (\w+)", test_results)
+                     # Loop through the extracted test cases and display formatted results
+                    for test_name, test_location, test_status in test_cases:
+                        # Define the status symbols
+                        if test_status == "ok":
+                            status_symbol = "✅"  # Success
+                        elif test_status == "FAIL":
+                            status_symbol = "❌"  # Failure
+                        elif test_status == "ERROR":
+                            status_symbol = "❗"  # Error
+                        else:
+                            status_symbol = "❔"  # Unknown
+
+                        # Format the result to show the symbol and test information
+                        formatted_result = f"{test_name} → {test_status} {status_symbol} )"
+                        print(formatted_result)
+                        st.write(formatted_result)
                 else:
-                    st.warning(f"Could not determine the function being tested in: {item['unit_test_id']}")
+                    print("No test results found.")
+                    st.write("No test results found.")
+
+                    
+
+                
+            else:
+                print(f"Python in list: {language}")
+                navigate_into_repo_folder(repo_name=repo_name)
+                create_virtual_environment()
+                activate_virtual_environment()
+                install_package("pytest")
+                install_requirements()
+                create_pytest_ini()
+                create_test_files_for_functions(data)
+
+                # Run tests and display results
+                for item in data:
+                    tested_function = extract_tested_function(item["unit_test_code"])
+                    
+                    if tested_function:
+                        test_file_name = f"test_{tested_function}.py"
+                        test_results = run_pytest_and_capture_results(test_file_name)
+                        print(f"test_results:{test_results}")
+                        st.write(f"Test Results for {tested_function}:")
+                        
+                        for test_name, result in test_results.items():
+                            st.write(f"{result} {test_name}")
+                    else:
+                        st.warning(f"Could not determine the function being tested in: {item['unit_test_id']}")
         
         elif 'JavaScript' in language or 'javascript' in language:
             print(f"JavaScript in list: {language}")

@@ -56,6 +56,7 @@ async def generate_test_cases(modules_need_testing_json: str, languages_json: st
     extracted_text_chunks = split_into_chunks(extracted_text, safe_token_limit)
     print("========================================text chunks=============================================")
     print(f"extracted_text_chunks: {extracted_text_chunks}")
+    # extracted_text_chunks=None
     if not extracted_text_chunks:
         text_chunk="relay on the code "
         

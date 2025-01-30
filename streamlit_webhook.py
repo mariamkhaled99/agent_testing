@@ -16,6 +16,7 @@ import pdfplumber
 from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
+import re
 
 from github_app_auth import generate_jwt, get_installation_access_token
 from utils import get_repo_name
@@ -290,6 +291,7 @@ st.markdown(
 if st.button("Analyze Repository"):
     if repo_url:
         try:
+        
             # Ensure repo_url is valid before proceeding
             if not repo_url.startswith("http"):
                 raise ValueError("The provided URL must start with 'http' or 'https'.")
@@ -298,6 +300,18 @@ if st.button("Analyze Repository"):
             print("before ingest")
             summary, tree, content = ingest(repo_url)  # Ensure repo_url is defined here
             print(f"summary: {summary}")
+            user_repo = repo_url.replace("https://github.com/", "")
+            # Remove any trailing slashes or additional paths
+            user_repo = user_repo.split("/")[0] 
+            print(f"Extracted user/repo: {user_repo}")
+            
+            repo_fullname=user_repo
+            print(f"user_repo:{user_repo}")
+            st.subheader("file structure of the project")
+            new_tree = re.sub(rf"└── {user_repo}-(\S+)", r"└── \1", tree)
+            st.write(new_tree)
+            
+            
 
             # Perform analysis on the content
             analysis_result_langs = asyncio.run(analyze_repo_content(content))
@@ -314,11 +328,13 @@ if st.button("Analyze Repository"):
             analysis_result_langs_json=json.dumps(analysis_result_langs, indent=4)
             print(f"analysis_result_langs: {analysis_result_langs_json}")
             print('==============================================================================================')
+            
 
 
             test_cases= asyncio.run(generate_test_cases(analysis_result_testing,analysis_result_langs_json,extracted_text,False))
             
-            test_code=asyncio.run(generate_unit_testing_code(test_cases,analysis_result_langs_json,False))
+            test_code=asyncio.run(generate_unit_testing_code(test_cases,analysis_result_langs_json,False,new_tree,user_repo))
+            
             # Create a dictionary with the results
             result_data = {
                 "repo_url": repo_url,
@@ -331,12 +347,7 @@ if st.button("Analyze Repository"):
 
             # Convert dictionary to JSON string
             result_json = json.dumps(result_data, indent=4)
-            user_repo = repo_url.replace("https://github.com/", "")
-            # Remove any trailing slashes or additional paths
-            user_repo = user_repo.split("/")[0] + "/" + user_repo.split("/")[1]
-            print(f"Extracted user/repo: {user_repo}")
-           
-            repo_fullname=user_repo
+            
             # history = StreamlitChatMessageHistory(key=f"{repo_fullname}")
 
             # history.add_user_message(result_json )
@@ -348,17 +359,29 @@ if st.button("Analyze Repository"):
             st.json(result_data)  # Display the JSON in a formatted way
             
             languages= analysis_result_langs.get('languages')
+            frameworks= analysis_result_langs.get('frameworks')
+            
             
             print(f"analysis_result_langs:{analysis_result_langs}")
             
-            repo_name=repo_name = get_repo_name(repo_url)
+            repo_name = get_repo_name(repo_url)
             
-            run_test(repo_url,repo_name,test_code,languages)
+            run_test(repo_url,repo_name,test_code,languages,frameworks)
 
             # # You can also save it to a file if needed
-            # with open("repo_analysis_result.json", "w") as json_file:
-            #     json.dump(result_data, json_file, indent=4)
-            # st.success("Results saved to repo_analysis_result.json")
+            with open(f"{repo_name}.json", "w") as json_file:
+                json.dump(result_data, json_file, indent=4)
+            st.success(f"Results saved to {repo_name}.json")
+            
+            # Provide file download option in Streamlit
+            with open(f"{repo_name}.json", "r") as json_file:
+                st.download_button(
+                    label="Download Test Results",
+                    data=json_file,
+                    file_name=f"{repo_name}.json",
+                    mime="application/json"
+                )
+
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
